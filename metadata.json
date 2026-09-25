@@ -1,0 +1,6 @@
+{
+  "name": "パワーショベルに乗ろう！",
+  "description": "PLCおじさん【大人の自由研究】企画！スマートフォン向け本格パワーショベル操作シミュレーションゲーム。実機仕様の2本レバーでアーム・ブーム・旋回・バケットを操り、ボールをすくってダンプカーへ積み込もう！",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
