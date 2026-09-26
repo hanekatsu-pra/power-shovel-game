@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { getHandDrawnIllustrationGradient } from './handDrawnStyle';
-import { characterProfiles } from './characterProfiles';
+import { characterProfileById, characterProfiles } from './characterProfiles';
 const spectatorWalkingAssetUrls: Record<string, string> = {
   'spectator-01/spectator-01-walking-01-front.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-01-front.png', import.meta.url).href,
   'spectator-01/spectator-01-walking-02-right.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-02-right.png', import.meta.url).href,
@@ -18,6 +18,50 @@ const spectatorWalkingAssetUrls: Record<string, string> = {
   'spectator-06/spectator-06-walking-02-right.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-02-right.png', import.meta.url).href,
   'spectator-06/spectator-06-walking-03-left.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-03-left.png', import.meta.url).href,
   'spectator-06/spectator-06-walking-04-back.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-04-back.png', import.meta.url).href,
+  'spectator-101/spectator-101-walking-01-front.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-01-front.png', import.meta.url).href,
+  'spectator-101/spectator-101-walking-02-right.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-02-right.png', import.meta.url).href,
+  'spectator-101/spectator-101-walking-03-left.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-03-left.png', import.meta.url).href,
+  'spectator-101/spectator-101-walking-04-back.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-04-back.png', import.meta.url).href,
+  'spectator-102/spectator-102-walking-01-front.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-01-front.png', import.meta.url).href,
+  'spectator-102/spectator-102-walking-02-right.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-02-right.png', import.meta.url).href,
+  'spectator-102/spectator-102-walking-03-left.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-03-left.png', import.meta.url).href,
+  'spectator-102/spectator-102-walking-04-back.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-04-back.png', import.meta.url).href,
+  'spectator-103/spectator-103-walking-01-front.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-01-front.png', import.meta.url).href,
+  'spectator-103/spectator-103-walking-02-right.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-02-right.png', import.meta.url).href,
+  'spectator-103/spectator-103-walking-03-left.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-03-left.png', import.meta.url).href,
+  'spectator-103/spectator-103-walking-04-back.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-04-back.png', import.meta.url).href,
+  'spectator-104/spectator-104-walking-01-front.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-01-front.png', import.meta.url).href,
+  'spectator-104/spectator-104-walking-02-right.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-02-right.png', import.meta.url).href,
+  'spectator-104/spectator-104-walking-03-left.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-03-left.png', import.meta.url).href,
+  'spectator-104/spectator-104-walking-04-back.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-04-back.png', import.meta.url).href,
+  'spectator-105/spectator-105-walking-01-front.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-01-front.png', import.meta.url).href,
+  'spectator-105/spectator-105-walking-02-right.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-02-right.png', import.meta.url).href,
+  'spectator-105/spectator-105-walking-03-left.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-03-left.png', import.meta.url).href,
+  'spectator-105/spectator-105-walking-04-back.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-04-back.png', import.meta.url).href,
+  'spectator-10/spectator-10-walking-01-front.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-01-front.png', import.meta.url).href,
+  'spectator-10/spectator-10-walking-02-right.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-02-right.png', import.meta.url).href,
+  'spectator-10/spectator-10-walking-03-left.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-03-left.png', import.meta.url).href,
+  'spectator-10/spectator-10-walking-04-back.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-04-back.png', import.meta.url).href,
+  'spectator-106/spectator-106-walking-01-front.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-01-front.png', import.meta.url).href,
+  'spectator-106/spectator-106-walking-02-right.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-02-right.png', import.meta.url).href,
+  'spectator-106/spectator-106-walking-03-left.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-03-left.png', import.meta.url).href,
+  'spectator-106/spectator-106-walking-04-back.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-04-back.png', import.meta.url).href,
+  'spectator-107/spectator-107-walking-01-front.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-01-front.png', import.meta.url).href,
+  'spectator-107/spectator-107-walking-02-right.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-02-right.png', import.meta.url).href,
+  'spectator-107/spectator-107-walking-03-left.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-03-left.png', import.meta.url).href,
+  'spectator-107/spectator-107-walking-04-back.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-04-back.png', import.meta.url).href,
+  'spectator-09/spectator-09-walking-01-front.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-01-front.png', import.meta.url).href,
+  'spectator-09/spectator-09-walking-02-right.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-02-right.png', import.meta.url).href,
+  'spectator-09/spectator-09-walking-03-left.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-03-left.png', import.meta.url).href,
+  'spectator-09/spectator-09-walking-04-back.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-04-back.png', import.meta.url).href,
+  'spectator-11/spectator-11-walking-01-front.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-01-front.png', import.meta.url).href,
+  'spectator-11/spectator-11-walking-02-right.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-02-right.png', import.meta.url).href,
+  'spectator-11/spectator-11-walking-03-left.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-03-left.png', import.meta.url).href,
+  'spectator-11/spectator-11-walking-04-back.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-04-back.png', import.meta.url).href,
+  'spectator-12/spectator-12-walking-01-front.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-01-front.png', import.meta.url).href,
+  'spectator-12/spectator-12-walking-02-right.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-02-right.png', import.meta.url).href,
+  'spectator-12/spectator-12-walking-03-left.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-03-left.png', import.meta.url).href,
+  'spectator-12/spectator-12-walking-04-back.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-04-back.png', import.meta.url).href,
 };
 /** Development-only: set true to draw non-interactive ID labels. */
 const SHOW_OBJECT_IDS = false;
@@ -134,16 +178,75 @@ export class ConstructionScene {
     routeProgress: number;
     routeSpeed: number;
     baseRouteSpeed: number;
+    startDelay: number;
     spawnCount: number;
     phase: number;
   }> = [];
   private mallWalkerFrame = 0;
+
   private mallWalkerPoseSets: Record<string, THREE.Texture[]> = {};
   /** Reused on route completion; every profile has its own four walking cuts. */
-  // spectator_101–200 are walker-only. The pool remains empty until the first walker-only profile is generated.
+  // The pool is rebuilt from profiles marked useAsWalker.
   private mallWalkerCharacterPool: string[] = [];
   private mallWalkerSpeedMultipliers = [0.86, 0.91, 0.96, 1.00, 1.04, 1.09, 1.14];
   private mallCharacterCatalog: Record<string, { viewingVariants: string[]; walkingPoses?: THREE.Texture[] }> = {};
+
+  /** Each character's walking multiplier is managed in its profile. */
+  private getMallWalkerCharacterScale(characterId: string) {
+    return characterProfileById[characterId]?.walkerScale ?? 1;
+  }
+
+  /** Keeps a stable world size; the PerspectiveCamera supplies the visual depth. */
+  private updateMallWalkerScale(sprite: THREE.Sprite, characterId: string, _worldZ: number) {
+    const characterScale = this.getMallWalkerCharacterScale(characterId);
+    const scale = characterScale;
+    const textureImage = (sprite.material as THREE.SpriteMaterial).map?.image as { width?: number; height?: number } | undefined;
+    const aspect = textureImage?.width && textureImage?.height ? textureImage.width / textureImage.height : 2 / 3;
+    sprite.scale.set(2.31 * aspect * scale, 2.31 * scale, 1);
+  }
+  /** Chooses a character not already visible; falls back only if unique candidates run out. */
+  private pickUnusedMallWalkerCharacter(excludedSprite: THREE.Sprite) {
+    const activeCharacterIds = new Set(
+      this.mallWalkers
+        .filter((walker) => walker.sprite !== excludedSprite)
+        .map((walker) => walker.characterId),
+    );
+    const unusedCharacterIds = this.mallWalkerCharacterPool.filter((id) => !activeCharacterIds.has(id));
+    const candidates = unusedCharacterIds.length > 0 ? unusedCharacterIds : this.mallWalkerCharacterPool;
+    // 101+ are common; 01-100 have a low rare weight for corridor selection.
+    const totalWeight = candidates.reduce((sum, id) => sum + (Number(id.replace('spectator_', '')) >= 101 ? 12 : 1), 0);
+    let pick = Math.random() * totalWeight;
+    for (const id of candidates) {
+      pick -= Number(id.replace('spectator_', '')) >= 101 ? 12 : 1;
+      if (pick <= 0) return id;
+    }
+    return candidates[candidates.length - 1];
+  }
+  /** Sofa footprint plus visual clearance for the billboard width. Checked only at spawn. */
+  private ensureMallWalkerRouteAvoidsSofa(route: THREE.Vector3[]) {
+    const bounds = { minX: -9.70, maxX: -6.70, minZ: -2.00, maxZ: 2.00 };
+    const segmentCrossesBounds = (from: THREE.Vector3, to: THREE.Vector3) => {
+      const samples = 24;
+      for (let index = 0; index <= samples; index++) {
+        const t = index / samples;
+        const x = THREE.MathUtils.lerp(from.x, to.x, t);
+        const z = THREE.MathUtils.lerp(from.z, to.z, t);
+        if (x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ) return true;
+      }
+      return false;
+    };
+    const isSafe = route.slice(0, -1).every((point, index) => !segmentCrossesBounds(point, route[index + 1]));
+    if (isSafe) return route;
+
+    const start = route[0];
+    const end = route[route.length - 1];
+    const travelsToPositiveZ = end.z > start.z;
+    const averageX = route.reduce((sum, point) => sum + point.x, 0) / route.length;
+    const bypassX = averageX < (bounds.minX + bounds.maxX) / 2 ? bounds.minX - 0.35 : bounds.maxX + 0.35;
+    const entryZ = travelsToPositiveZ ? bounds.minZ - 0.35 : bounds.maxZ + 0.35;
+    const exitZ = travelsToPositiveZ ? bounds.maxZ + 0.35 : bounds.minZ - 0.35;
+    return [start.clone(), new THREE.Vector3(bypassX, 0, entryZ), new THREE.Vector3(bypassX, 0, exitZ), end.clone()];
+  }
   /** Returns an inspectable ID/type/world-position listing for debug tools. */
   public getObjectIdList() {
     this.sceneGroup.updateMatrixWorld(true);
@@ -576,7 +679,8 @@ export class ConstructionScene {
         illustration.userData.ownerId = `spectator_${illustratedSpectator}`;
         illustration.userData.nonInteractive = true;
         illustration.center.set(0.5, 0);
-        const illustrationHeight = illustratedSpectator === '04' ? 1.595 : ['03', '07', '08'].includes(illustratedSpectator) ? 1.45 : illustratedSpectator === '02' ? 2.3625 : 2.25;
+        const spectatorScale = characterProfileById[`spectator_${illustratedSpectator}`]?.spectatorScale ?? 1;
+        const illustrationHeight = (illustratedSpectator === '04' ? 1.595 : ['03', '07', '08'].includes(illustratedSpectator) ? 1.45 : illustratedSpectator === '02' ? 2.3625 : 2.25) * spectatorScale;
         illustration.scale.set(illustrationHeight * (2 / 3), illustrationHeight, 1);
         illustration.renderOrder = 1;
         illustration.raycast = () => {};
@@ -763,11 +867,85 @@ export class ConstructionScene {
     // Dump basket side: four viewers outside the right tora-pole.
     addSpectator(-2.80, -4.65, 1.86, 0x0ea5e9, 1, 'lean', -0.4, 0.8);
     addSpectator(-3.60, 1.48, 1.25, 0xf43f5e, 0, 'watch', -0.6, 2.0);
-    addSpectator(-3.74, 2.06, 1.949, 0xf97316, 2, 'wave', -0.4, 2.3);
+    addSpectator(-3.74, -0.14, 1.949, 0xf97316, 2, 'wave', -0.4, 2.3);
     addSpectator(3.63, 2.55, 1.264, 0x22c55e, 0, 'watch', 0.7, 2.25);
     // Ball-back side: two viewers outside the right-rear tora-pole.
     addSpectator(3.71, 3.20, 1.92, 0x4f46e5, 0, 'watch', 1.45, 3.05);
     addSpectator(3.62, 3.64, 1.28, 0xf97316, 2, 'wave', 1.45, 3.20);
+
+    // spectator_106: right-side open space. Static visual-only billboard; no collider or raycast.
+    const spectator106 = new THREE.Group();
+    const spectator106Id = 'spectator_106';
+    const spectator106Texture = new THREE.TextureLoader().load(
+      new URL('../assets/spectators/spectator-106/spectator-106-viewing-01-smile.png', import.meta.url).href
+    );
+    spectator106Texture.colorSpace = THREE.SRGBColorSpace;
+    const spectator106Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: spectator106Texture,
+      transparent: true,
+      alphaTest: 0.01,
+      depthWrite: false,
+    }));
+    spectator106Sprite.name = `${spectator106Id}__handdrawn_billboard`;
+    spectator106Sprite.userData.ownerId = spectator106Id;
+    spectator106Sprite.userData.nonInteractive = true;
+    spectator106Sprite.center.set(0.5, 0);
+    const spectator106Height = 2.25 * (characterProfileById[spectator106Id]?.spectatorScale ?? 1);
+    spectator106Sprite.scale.set(spectator106Height * (1374 / 1145), spectator106Height, 1);
+    spectator106Sprite.renderOrder = 1;
+    spectator106Sprite.raycast = () => {};
+    spectator106.add(spectator106Sprite);
+    spectator106.position.set(4.85, 0, -0.55);
+    registerObjectId(spectator106, spectator106Id, 'spectator', 'S106', spectator106Height + 0.18);
+    spectators.add(spectator106);
+
+    // spectator_107: rear open space. Static visual-only family billboard; no collider or raycast.
+    const spectator107 = new THREE.Group();
+    const spectator107Id = 'spectator_107';
+    const spectator107Texture = new THREE.TextureLoader().load(
+      new URL('../assets/spectators/spectator-107/spectator-107-viewing-01-smile.png', import.meta.url).href
+    );
+    spectator107Texture.colorSpace = THREE.SRGBColorSpace;
+    const spectator107Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: spectator107Texture,
+      transparent: true,
+      alphaTest: 0.01,
+      depthWrite: false,
+    }));
+    spectator107Sprite.name = `${spectator107Id}__handdrawn_billboard`;
+    spectator107Sprite.userData.ownerId = spectator107Id;
+    spectator107Sprite.userData.nonInteractive = true;
+    spectator107Sprite.center.set(0.5, 0);
+    const spectator107Height = 2.25 * (characterProfileById[spectator107Id]?.spectatorScale ?? 1);
+    spectator107Sprite.scale.set(spectator107Height * (2 / 3), spectator107Height, 1);
+    spectator107Sprite.renderOrder = 1;
+    spectator107Sprite.raycast = () => {};
+    spectator107.add(spectator107Sprite);
+    spectator107.position.set(2.9, 0, -3.95);
+    registerObjectId(spectator107, spectator107Id, 'spectator', 'S107', spectator107Height + 0.18);
+    spectators.add(spectator107);
+
+    // spectator_11 and spectator_12: evenly spaced rear viewing positions, visual-only.
+    const addRearIllustratedSpectator = (id: 'spectator_11' | 'spectator_12', asset: string, x: number, z: number) => {
+      const person = new THREE.Group();
+      const texture = new THREE.TextureLoader().load(new URL(`../assets/spectators/${asset}`, import.meta.url).href);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, alphaTest: 0.01, depthWrite: false }));
+      sprite.name = `${id}__handdrawn_billboard`;
+      sprite.userData.ownerId = id;
+      sprite.userData.nonInteractive = true;
+      sprite.center.set(0.5, 0);
+      const height = 2.25 * (characterProfileById[id]?.spectatorScale ?? 1);
+      sprite.scale.set(height * (2 / 3), height, 1);
+      sprite.renderOrder = 1;
+      sprite.raycast = () => {};
+      person.add(sprite);
+      person.position.set(x, 0, z);
+      registerObjectId(person, id, 'spectator', id === 'spectator_11' ? 'S11' : 'S12', height + 0.18);
+      spectators.add(person);
+    };
+    addRearIllustratedSpectator('spectator_11', 'spectator-11/spectator-11-viewing-01-smile.png', -4.25, -3.70);
+    addRearIllustratedSpectator('spectator_12', 'spectator-12/spectator-12-viewing-01-smile.png', 4.25, -3.70);
 
     // Right-side family group: three extra viewers outside the tora-pole.
     addSpectator(3.43, 1.48, 1.88, 0x2563eb, 1, 'watch', 1.1, 2.0);
@@ -807,6 +985,19 @@ export class ConstructionScene {
    * Each sprite sheet contains front / side / back poses in three equal horizontal panels.
    */
   private buildMallWalkers() {
+    this.mallWalkerCharacterPool = characterProfiles
+      .filter((profile) => profile.useAsWalker && profile.walkingAssets && profile.walkingAssets.every((asset) => Boolean(spectatorWalkingAssetUrls[asset])))
+      // Initial browser load uses the 101+ walking set first; 01-100 remain rare fallback entries.
+      .sort((left, right) => {
+        const leftNumber = Number(left.id.replace('spectator_', ''));
+        const rightNumber = Number(right.id.replace('spectator_', ''));
+        const leftPreferred = leftNumber >= 101;
+        const rightPreferred = rightNumber >= 101;
+        if (leftPreferred !== rightPreferred) return leftPreferred ? -1 : 1;
+        return leftNumber - rightNumber;
+      })
+      .map((profile) => profile.id);
+    if (this.mallWalkerCharacterPool.length === 0) return;
     const loadSprite = (asset: string) => {
       const url = spectatorWalkingAssetUrls[asset];
       if (!url) throw new Error(`Missing walking image: ${asset}`);
@@ -838,14 +1029,16 @@ export class ConstructionScene {
     const walkerSpecs = [
       { id: 'mall_walker_01', characterPoolIndex: 0, routeSpeed: 0.0108, route: [point(-13.6, -19), point(-13.6, -9), point(-13.45, 2), point(-13.55, 10), point(-13.4, 18.5)] },
       { id: 'mall_walker_02', characterPoolIndex: 1, routeSpeed: 0.0113, route: [point(-11.75, 19), point(-12.25, 11), point(-12.7, 3), point(-12.15, -7), point(-11.85, -18)] },
-      { id: 'mall_walker_03', characterPoolIndex: 2, routeSpeed: 0.0099, route: [point(-10.1, -18.5), point(-9.25, -10), point(-9.0, -1.5), point(-9.85, 7.5), point(-10.25, 18.5)] },
-      { id: 'mall_walker_04', characterPoolIndex: 3, routeSpeed: 0.0117, route: [point(-8.2, 18.8), point(-8.8, 10), point(-8.35, 1), point(-7.75, -8.5), point(-8.45, -18.8)] },
+      { id: 'mall_walker_03', characterPoolIndex: 2, routeSpeed: 0.0099, route: [point(-10.1, -18.5), point(-10.45, -10), point(-10.7, -1.5), point(-10.35, 7.5), point(-10.25, 18.5)] },
+      { id: 'mall_walker_04', characterPoolIndex: 3, routeSpeed: 0.0117, route: [point(-9.9, 18.8), point(-10.15, 10), point(-10.4, 1), point(-10.0, -8.5), point(-9.85, -18.8)] },
       { id: 'mall_walker_05', characterPoolIndex: 4, routeSpeed: 0.0104, route: [point(-6.45, -19), point(-7.25, -11), point(-7.5, -3), point(-6.75, 6.5), point(-6.15, 18)] },
       { id: 'mall_walker_06', characterPoolIndex: 5, routeSpeed: 0.0111, route: [point(-4.85, 18.5), point(-5.7, 9), point(-5.25, 0), point(-4.55, -8), point(-5.35, -19)] },
     ];
 
     walkerSpecs.forEach((spec, index) => {
-      const characterId = this.mallWalkerCharacterPool[spec.characterPoolIndex];
+      const safeRoute = this.ensureMallWalkerRouteAvoidsSofa(spec.route);
+      const startDelay = index * 5;
+      const characterId = this.mallWalkerCharacterPool[spec.characterPoolIndex % this.mallWalkerCharacterPool.length];
       const poseTextures = this.mallWalkerPoseSets[characterId];
       if (!poseTextures) throw new Error(`Missing pose set: ${characterId}`);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: poseTextures[0], transparent: true, alphaTest: 0.01, depthWrite: false }));
@@ -854,12 +1047,13 @@ export class ConstructionScene {
       sprite.userData.characterId = characterId;
       sprite.userData.nonInteractive = true;
       sprite.center.set(0.5, 0);
-      sprite.position.copy(spec.route[0]);
-      sprite.scale.set(1.54, 2.31, 1);
+      sprite.position.copy(safeRoute[0]);
+      this.updateMallWalkerScale(sprite, characterId, sprite.position.z);
+      sprite.visible = startDelay === 0;
       sprite.renderOrder = 0;
       sprite.raycast = () => {};
       walkers.add(sprite);
-      this.mallWalkers.push({ ...spec, sprite, poseTextures, characterId, baseRouteSpeed: spec.routeSpeed, spawnCount: index, routeProgress: 0, phase: index * 1.9 });
+      this.mallWalkers.push({ ...spec, route: safeRoute, sprite, poseTextures, characterId, baseRouteSpeed: spec.routeSpeed, startDelay, spawnCount: index, routeProgress: 0, phase: index * 1.9 });
     });
     this.sceneGroup.add(walkers);
   }
@@ -872,23 +1066,32 @@ export class ConstructionScene {
     if (isMobile && this.mallWalkerFrame % 2 !== 0) return;
     const step = Math.min(delta * (isMobile ? 2 : 1), 0.05);
     this.mallWalkers.forEach((walker, laneIndex) => {
+      if (walker.startDelay > 0) {
+        walker.startDelay = Math.max(0, walker.startDelay - step);
+        walker.sprite.visible = walker.startDelay === 0;
+        return;
+      }
       walker.routeProgress += walker.routeSpeed * step;
       if (walker.routeProgress >= 1) {
         walker.routeProgress = 0;
         walker.spawnCount++;
+        walker.startDelay = 0;
+        walker.sprite.visible = true;
         // Re-enter with another existing character, while the lane ID stays fixed.
-        walker.characterPoolIndex = (laneIndex + walker.spawnCount) % this.mallWalkerCharacterPool.length;
-        walker.characterId = this.mallWalkerCharacterPool[walker.characterPoolIndex];
+        walker.characterId = this.pickUnusedMallWalkerCharacter(walker.sprite);
+        walker.characterPoolIndex = this.mallWalkerCharacterPool.indexOf(walker.characterId);
         walker.poseTextures = this.mallWalkerPoseSets[walker.characterId];
         const speedIndex = (walker.spawnCount * 2 + laneIndex) % this.mallWalkerSpeedMultipliers.length;
         walker.routeSpeed = walker.baseRouteSpeed * this.mallWalkerSpeedMultipliers[speedIndex];
         walker.sprite.userData.characterId = walker.characterId;
+
       }
       const segmentCount = walker.route.length - 1;
       const scaledProgress = walker.routeProgress * segmentCount;
       const segment = Math.min(Math.floor(scaledProgress), segmentCount - 1);
       const segmentProgress = scaledProgress - segment;
       walker.sprite.position.lerpVectors(walker.route[segment], walker.route[segment + 1], segmentProgress);
+      this.updateMallWalkerScale(walker.sprite, walker.characterId, walker.sprite.position.z);
       walker.phase += step * 5.0;
       walker.sprite.position.y = Math.max(0, Math.sin(walker.phase) * 0.018);
       const walksTowardBack = walker.route[walker.route.length - 1].z > walker.route[0].z;
