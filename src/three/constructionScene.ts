@@ -188,6 +188,8 @@ export class ConstructionScene {
   /** Reused on route completion; every profile has its own four walking cuts. */
   // The pool is rebuilt from profiles marked useAsWalker.
   private mallWalkerCharacterPool: string[] = [];
+  /** Debug order cursor: 101+ first, then the available 01+ profiles. */
+  private mallWalkerNextCharacterIndex = 0;
   private mallWalkerSpeedMultipliers = [0.86, 0.91, 0.96, 1.00, 1.04, 1.09, 1.14];
   private mallCharacterCatalog: Record<string, { viewingVariants: string[]; walkingPoses?: THREE.Texture[] }> = {};
 
@@ -204,25 +206,25 @@ export class ConstructionScene {
     const aspect = textureImage?.width && textureImage?.height ? textureImage.width / textureImage.height : 2 / 3;
     sprite.scale.set(2.31 * aspect * scale, 2.31 * scale, 1);
   }
-  /** Chooses a character not already visible; falls back only if unique candidates run out. */
+  /** Uses a deterministic debug sequence while avoiding duplicates already on-screen. */
   private pickUnusedMallWalkerCharacter(excludedSprite: THREE.Sprite) {
     const activeCharacterIds = new Set(
       this.mallWalkers
         .filter((walker) => walker.sprite !== excludedSprite)
         .map((walker) => walker.characterId),
     );
-    const unusedCharacterIds = this.mallWalkerCharacterPool.filter((id) => !activeCharacterIds.has(id));
-    const candidates = unusedCharacterIds.length > 0 ? unusedCharacterIds : this.mallWalkerCharacterPool;
-    // 101+ are common; 01-100 have a low rare weight for corridor selection.
-    const totalWeight = candidates.reduce((sum, id) => sum + (Number(id.replace('spectator_', '')) >= 101 ? 12 : 1), 0);
-    let pick = Math.random() * totalWeight;
-    for (const id of candidates) {
-      pick -= Number(id.replace('spectator_', '')) >= 101 ? 12 : 1;
-      if (pick <= 0) return id;
+    for (let offset = 0; offset < this.mallWalkerCharacterPool.length; offset++) {
+      const index = (this.mallWalkerNextCharacterIndex + offset) % this.mallWalkerCharacterPool.length;
+      const id = this.mallWalkerCharacterPool[index];
+      if (!activeCharacterIds.has(id)) {
+        this.mallWalkerNextCharacterIndex = (index + 1) % this.mallWalkerCharacterPool.length;
+        return id;
+      }
     }
-    return candidates[candidates.length - 1];
-  }
-  /** Sofa footprint plus visual clearance for the billboard width. Checked only at spawn. */
+    const fallback = this.mallWalkerCharacterPool[this.mallWalkerNextCharacterIndex];
+    this.mallWalkerNextCharacterIndex = (this.mallWalkerNextCharacterIndex + 1) % this.mallWalkerCharacterPool.length;
+    return fallback;
+  }  /** Sofa footprint plus visual clearance for the billboard width. Checked only at spawn. */
   private ensureMallWalkerRouteAvoidsSofa(route: THREE.Vector3[]) {
     const bounds = { minX: -9.70, maxX: -6.70, minZ: -2.00, maxZ: 2.00 };
     const segmentCrossesBounds = (from: THREE.Vector3, to: THREE.Vector3) => {
@@ -650,6 +652,8 @@ export class ConstructionScene {
           ? new URL('../assets/spectators/spectator-01/spectator-01-viewing-01-smile.png', import.meta.url).href
           : illustratedSpectator === '09'
           ? new URL('../assets/spectators/spectator-09/spectator-09-viewing-01-smile.png', import.meta.url).href
+          : illustratedSpectator === '10'
+          ? new URL('../assets/spectators/spectator-10/spectator-10-viewing-01-smile.png', import.meta.url).href
           : illustratedSpectator === '08'
           ? new URL('../assets/spectators/spectator-08/spectator-08-viewing-01-smile.png', import.meta.url).href
           : illustratedSpectator === '07'
@@ -921,14 +925,19 @@ export class ConstructionScene {
     spectator107Sprite.renderOrder = 1;
     spectator107Sprite.raycast = () => {};
     spectator107.add(spectator107Sprite);
-    spectator107.position.set(2.9, 0, -3.95);
+    spectator107.position.set(2.50, 0, -3.45);
     registerObjectId(spectator107, spectator107Id, 'spectator', 'S107', spectator107Height + 0.18);
     spectators.add(spectator107);
 
-    // spectator_11 and spectator_12: evenly spaced rear viewing positions, visual-only.
-    const addRearIllustratedSpectator = (id: 'spectator_11' | 'spectator_12', asset: string, x: number, z: number) => {
+    // Additional illustrated spectators: fixed, visual-only billboards around the outer viewing ring.
+    const addOuterIllustratedSpectator = (
+      id: 'spectator_11' | 'spectator_12' | 'spectator_101' | 'spectator_102' | 'spectator_103' | 'spectator_104' | 'spectator_105',
+      viewingUrl: string,
+      x: number,
+      z: number,
+    ) => {
       const person = new THREE.Group();
-      const texture = new THREE.TextureLoader().load(new URL(`../assets/spectators/${asset}`, import.meta.url).href);
+      const texture = new THREE.TextureLoader().load(viewingUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, alphaTest: 0.01, depthWrite: false }));
       sprite.name = `${id}__handdrawn_billboard`;
@@ -941,12 +950,16 @@ export class ConstructionScene {
       sprite.raycast = () => {};
       person.add(sprite);
       person.position.set(x, 0, z);
-      registerObjectId(person, id, 'spectator', id === 'spectator_11' ? 'S11' : 'S12', height + 0.18);
+      registerObjectId(person, id, 'spectator', id.replace('spectator_', 'S'), height + 0.18);
       spectators.add(person);
     };
-    addRearIllustratedSpectator('spectator_11', 'spectator-11/spectator-11-viewing-01-smile.png', -4.25, -3.70);
-    addRearIllustratedSpectator('spectator_12', 'spectator-12/spectator-12-viewing-01-smile.png', 4.25, -3.70);
-
+    addOuterIllustratedSpectator('spectator_11', new URL('../assets/spectators/spectator-11/spectator-11-viewing-01-smile.png', import.meta.url).href, -2.25, -3.45);
+    addOuterIllustratedSpectator('spectator_12', new URL('../assets/spectators/spectator-12/spectator-12-viewing-01-smile.png', import.meta.url).href, 0.65, -3.45);
+    addOuterIllustratedSpectator('spectator_101', new URL('../assets/spectators/spectator-101/spectator-101-viewing-01-smile.png', import.meta.url).href, -4.15, 0.40);
+    addOuterIllustratedSpectator('spectator_102', new URL('../assets/spectators/spectator-102/spectator-102-viewing-01-smile.png', import.meta.url).href, 4.25, 0.65);
+    addOuterIllustratedSpectator('spectator_103', new URL('../assets/spectators/spectator-103/spectator-103-viewing-01-smile.png', import.meta.url).href, -3.85, 3.35);
+    addOuterIllustratedSpectator('spectator_104', new URL('../assets/spectators/spectator-104/spectator-104-viewing-01-smile.png', import.meta.url).href, 3.85, 3.05);
+    addOuterIllustratedSpectator('spectator_105', new URL('../assets/spectators/spectator-105/spectator-105-viewing-01-smile.png', import.meta.url).href, 0.00, 4.75);
     // Right-side family group: three extra viewers outside the tora-pole.
     addSpectator(3.43, 1.48, 1.88, 0x2563eb, 1, 'watch', 1.1, 2.0);
     addSpectator(3.43, 2.26, 1.30, 0xf43f5e, 2, 'wave', 1.0, 2.25);
@@ -1055,6 +1068,7 @@ export class ConstructionScene {
       walkers.add(sprite);
       this.mallWalkers.push({ ...spec, route: safeRoute, sprite, poseTextures, characterId, baseRouteSpeed: spec.routeSpeed, startDelay, spawnCount: index, routeProgress: 0, phase: index * 1.9 });
     });
+    this.mallWalkerNextCharacterIndex = walkerSpecs.length % this.mallWalkerCharacterPool.length;
     this.sceneGroup.add(walkers);
   }
 
