@@ -19,6 +19,7 @@ export const IgnitionKey: React.FC<IgnitionKeyProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const handleTurnKey = () => {
+    if (!isChallengeMode) return;
     if (engineState === 'off') {
       soundManager.playKeyClick();
       onStartEngine();
@@ -46,7 +47,7 @@ export const IgnitionKey: React.FC<IgnitionKeyProps> = ({
           onClick={handleTurnKey}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          disabled={engineState === 'starting'}
+          disabled={engineState === 'starting' || !isChallengeMode}
           title={
             engineState === 'off'
               ? 'キーをひねってエンジンを始動（ゲーム開始）'

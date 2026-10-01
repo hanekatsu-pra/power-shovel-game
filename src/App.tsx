@@ -62,7 +62,7 @@ export default function App() {
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [cameraMode, setCameraMode] = useState<'leftRear' | 'centerRear' | 'cab'>('leftRear');
-  const [engineState, setEngineState] = useState<'off' | 'starting' | 'running'>('running');
+  const [engineState, setEngineState] = useState<'off' | 'starting' | 'running'>('off');
   const [bucketScoopCount, setBucketScoopCount] = useState<number>(0);
   const [bucketFloorAngle, setBucketFloorAngle] = useState<number>(0);
   const [spillRate, setSpillRate] = useState<number>(0);
@@ -95,7 +95,7 @@ export default function App() {
     operatorRank: '🐣 ひよこ見習い',
     timeRemaining: 60,
     isGameOver: false,
-    mode: 'free',
+    mode: 'challenge',
   });
 
   // Three.js instances ref
@@ -111,7 +111,7 @@ export default function App() {
   const confirmedBasketEntriesRef = useRef(0);
   const criticalRestoreTimerRef = useRef<number | null>(null);
 
-  const engineStateRef = useRef<'off' | 'starting' | 'running'>('running');
+  const engineStateRef = useRef<'off' | 'starting' | 'running'>('off');
   const cameraModeRef = useRef<'leftRear' | 'centerRear' | 'cab'>('leftRear');
 
   useEffect(() => {

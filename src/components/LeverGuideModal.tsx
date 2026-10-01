@@ -34,7 +34,7 @@ export const LeverGuideModal: React.FC<LeverGuideModalProps> = ({ isOpen, onClos
               パワーショベル操作仕様書＆遊び方
             </h2>
             <p className="text-xs text-slate-400">
-              YouTubeチャンネル「PLCおじさん【大人の自由研究】」企画
+              YouTube「PLCおじさんの自由研究」企画
             </p>
           </div>
         </div>

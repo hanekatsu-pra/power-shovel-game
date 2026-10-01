@@ -23,3 +23,13 @@ body,
 @media (max-width: 767px), (pointer: coarse) {
   .mobile-debug-hidden { display: none; }
 }@import "tailwindcss";
+
+@media (orientation: landscape) and (pointer: coarse) {
+  .game-hud-topbar { gap: 0.25rem; flex-wrap: nowrap; }
+  .game-hud-title-panel { padding: 0.25rem 0.45rem; }
+  .game-hud-stats-panel { padding: 0.25rem 0.45rem; gap: 0.35rem; }
+  .game-hud-control-row { gap: 0.25rem; flex-wrap: nowrap; }
+  .game-hud-control-row button { padding: 0.3rem 0.45rem; }
+  .game-hud-action-controls { gap: 0.2rem; }
+  .game-hud-instruction { left: 33%; top: auto; bottom: 10rem; }
+}

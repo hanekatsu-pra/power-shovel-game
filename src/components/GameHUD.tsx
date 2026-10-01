@@ -7,6 +7,7 @@ import {
   Clock,
   Target,
   Sparkles,
+
   Eye,
 } from 'lucide-react';
 import { GameStats } from '../types';
@@ -52,12 +53,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     'bg-slate-800/90 text-slate-200 hover:bg-slate-700/90 border border-slate-700/80 transition-all active:scale-95';
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 sm:p-4 z-20">
+    <div className="game-hud-shell absolute inset-0 pointer-events-none flex flex-col justify-between p-2 sm:p-4 z-20">
       {/* Top Header Bar: All windows placed at the exact same vertical level */}
-      <div className="flex items-start justify-between gap-2 flex-wrap lg:flex-nowrap">
+      <div className="game-hud-topbar flex items-start justify-between gap-2 flex-nowrap">
         {/* Window 1: Title & Channel & Style badge */}
         <div
-          className={`flex flex-col rounded-xl px-3 py-1.5 pointer-events-auto transition-all ${panelBg}`}
+          className={`game-hud-title-panel flex flex-col shrink-0 rounded-xl px-3 py-1.5 pointer-events-auto transition-all ${panelBg}`}
         >
           <div className="flex items-center gap-2">
             <span
@@ -66,23 +67,23 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             >
               パワーショベルに乗ろう！
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+            <span className="hidden">
               <Sparkles className="w-2.5 h-2.5" /> 手書きイラスト風
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-[10px] font-medium ${subTextCol}`}>
-              YouTube「PLCおじさん【大人の自由研究】」企画
+              YouTube「PLCおじさんの自由研究」企画
             </span>
           </div>
         </div>
 
         {/* Window 2: Center Stats: Score, Loaded, Golden Balls, Combos, Timer */}
         <div
-          className={`flex items-center gap-2 sm:gap-3 rounded-xl px-3 py-1.5 pointer-events-auto transition-all ${panelBg}`}
+          className={`game-hud-stats-panel flex shrink-0 items-center gap-2 sm:gap-3 rounded-xl px-3 py-1.5 pointer-events-auto transition-all ${panelBg}`}
         >
           {/* Cumulative loaded count */}
-          <div className="flex items-center gap-1.5">
+          <div className="game-hud-control-row flex items-center gap-1.5 flex-nowrap">
             <Target className="w-4 h-4 text-emerald-400" />
             <div className="flex flex-col">
               <span className={`text-[9px] font-semibold leading-none ${subTextCol}`}>
@@ -129,7 +130,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
 
         {/* Window 3: Camera View Selector & Action Controls (All at the exact same height!) */}
-        <div className="flex flex-col items-end pointer-events-auto">
+        <div className="game-hud-control-panel flex flex-col items-end shrink-0 pointer-events-auto">
           <div className="flex items-center gap-1.5">
             {/* Camera View Window (Same height and row as other windows) */}
             <div className={`flex items-center rounded-xl p-1 ${panelBg}`}>
@@ -152,7 +153,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             </div>
 
             {/* Action Controls Window */}
-            <div className={`flex items-center gap-1 sm:gap-1.5 rounded-xl p-1 ${panelBg}`}>
+            <div className={`game-hud-action-controls flex items-center gap-1 sm:gap-1.5 rounded-xl p-1 ${panelBg}`}>
               {/* Mode switch */}
               <button
                 id="toggle-game-mode-btn"
@@ -242,7 +243,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
           {!guardWarningText && (
             <div
-              className={'absolute left-[72%] top-[53%] -translate-x-1/2 max-w-[11rem] text-center leading-snug text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-md bg-slate-950/70 border-slate-800 text-slate-400'}
+              className={'game-hud-instruction absolute left-[33%] bottom-[10rem] top-auto -translate-x-1/2 max-w-[11rem] text-center leading-snug text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-md bg-slate-950/70 border-slate-800 text-slate-400'}
             >
               左右レバーでボールをすくってダンプバスケットへ投入しよう！
             </div>
