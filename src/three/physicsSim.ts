@@ -27,6 +27,17 @@ const BUCKET_BALL_SLOTS = Array.from({ length: 50 }, (_, index): [number, number
   ];
 });
 
+// Hand-placed, irregular basket-floor positions. They stay inside the visual
+// walls and are intentionally not arranged as a ring or a regular grid.
+const BASKET_LANDING_SLOTS: ReadonlyArray<readonly [number, number]> = [
+  [-0.31, -0.45], [0.03, -0.43], [0.29, -0.34],
+  [-0.17, -0.20], [0.17, -0.14], [0.34, 0.05],
+  [-0.35, 0.08], [-0.06, 0.13], [0.25, 0.24],
+  [-0.24, 0.36], [0.08, 0.40], [0.33, 0.48],
+  [-0.36, -0.03], [0.03, -0.31], [-0.28, 0.23],
+  [0.12, 0.08], [-0.08, 0.51], [0.31, -0.03],
+];
+
 export class PhysicsSim {
   public balls: ScoopableBall[] = [];
   public ballsGroup: THREE.Group;
@@ -331,6 +342,8 @@ export class PhysicsSim {
     const gravity = -9.8;
     const dt = Math.min(0.033, delta);
     const r = this.ballRadius;
+    // floorY is the centre of the 0.06m visible basket floor; keep loaded balls above its top surface.
+    const dumpBasketVisualFloorOffset = 0.03;
     const ballDiam = r * 2;
 
     this.bucketInvMatrix.copy(excavator.bucketMesh.matrixWorld).invert();
@@ -481,6 +494,12 @@ export class PhysicsSim {
         const laneOffset = this.getReturnLaneOffset(i);
         if (phase === 1) {
           this.ballReturnTimers[i] += dt;
+          // Keep freshly dumped balls visibly spread across the basket floor while
+          // they wait for the return unit. This is presentation-only: score and
+          // return sequencing remain unchanged.
+          const settle = dumpBed.floorY + dumpBasketVisualFloorOffset + r;
+          const bounce = Math.max(0, 0.024 - this.ballReturnTimers[i] * 0.020);
+          b.y = settle + Math.abs(Math.sin(this.ballReturnTimers[i] * 18)) * bounce;
           if (this.returnClock >= this.ballReturnStartTimes[i]) {
             this.ballReturnPhase[i] = 2;
             this.ballReturnTimers[i] = 0;
@@ -488,7 +507,7 @@ export class PhysicsSim {
           }
         } else if (phase === 2) {
           this.ballReturnTimers[i] += dt;
-          const t = Math.min(1, this.ballReturnTimers[i] / 0.65);
+          const t = Math.min(1, this.ballReturnTimers[i] / 0.975);
           b.x = THREE.MathUtils.lerp(
             dumpBed.center.x + laneOffset * 0.4,
             this.returnTrajectory.conveyorBottom.x + laneOffset,
@@ -500,7 +519,7 @@ export class PhysicsSim {
             t
           );
           b.y = THREE.MathUtils.lerp(
-            dumpBed.floorY + r,
+            dumpBed.floorY + dumpBasketVisualFloorOffset + r,
             this.returnTrajectory.conveyorBottom.y,
             t
           );
@@ -511,7 +530,7 @@ export class PhysicsSim {
           }
         } else if (phase === 3) {
           this.ballReturnTimers[i] += dt;
-          const t = Math.min(1, this.ballReturnTimers[i] / 2.4);
+          const t = Math.min(1, this.ballReturnTimers[i] / 3.6);
           b.x = this.returnTrajectory.conveyorBottom.x + laneOffset;
           b.y = THREE.MathUtils.lerp(
             this.returnTrajectory.conveyorBottom.y,
@@ -526,7 +545,7 @@ export class PhysicsSim {
           }
         } else if (phase === 4) {
           this.ballReturnTimers[i] += dt;
-          const t = Math.min(1, this.ballReturnTimers[i] / 0.25);
+          const t = Math.min(1, this.ballReturnTimers[i] / 0.375);
           b.x = THREE.MathUtils.lerp(
             this.returnTrajectory.conveyorTop.x + laneOffset,
             this.returnTrajectory.chuteEntry.x,
@@ -658,17 +677,39 @@ export class PhysicsSim {
           b.y >= dumpBed.floorY - 0.10
         ) {
           b.isLoaded = true;
-          b.y = dumpBed.floorY + r;
+          // Choose a stable, well-spaced landing point within the visible basket
+          // instead of freezing every loaded ball at its incoming centre position.
+          const firstSlot = (i * 7) % BASKET_LANDING_SLOTS.length;
+          let selectedSlot = firstSlot;
+          const minSeparationSq = (r * 2.35) ** 2;
+          for (let attempt = 0; attempt < BASKET_LANDING_SLOTS.length; attempt++) {
+            const slot = (firstSlot + attempt) % BASKET_LANDING_SLOTS.length;
+            const [candidateX, candidateZ] = BASKET_LANDING_SLOTS[slot];
+            const isClear = this.balls.every((other, otherIndex) => {
+              if (otherIndex === i || !other.isLoaded || this.ballReturnPhase[otherIndex] !== 1) return true;
+              const dx = other.x - (dumpBed.center.x + candidateX);
+              const dz = other.z - (dumpBed.center.z + candidateZ);
+              return dx * dx + dz * dz >= minSeparationSq;
+            });
+            if (isClear) {
+              selectedSlot = slot;
+              break;
+            }
+          }
+          const [localX, localZ] = BASKET_LANDING_SLOTS[selectedSlot];
+          b.x = dumpBed.center.x + localX;
+          b.z = dumpBed.center.z + localZ;
+          b.y = dumpBed.floorY + dumpBasketVisualFloorOffset + r;
           b.vx = 0;
           b.vy = 0;
           b.vz = 0;
           this.ballReturnPhase[i] = 1;
           this.ballReturnTimers[i] = 0;
           this.ballReturnStartTimes[i] = Math.max(
-            this.returnClock + 0.70,
+            this.returnClock + 1.05,
             this.nextReturnStartTime
           );
-          this.nextReturnStartTime = this.ballReturnStartTimes[i] + 0.22;
+          this.nextReturnStartTime = this.ballReturnStartTimes[i] + 0.33;
 
           soundManager.playDumpImpact();
           newlyDumpedThisFrame++;

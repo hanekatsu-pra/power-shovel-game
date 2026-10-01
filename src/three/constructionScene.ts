@@ -1,68 +1,81 @@
 import * as THREE from 'three';
 import { getHandDrawnIllustrationGradient } from './handDrawnStyle';
-import { characterProfileById, characterProfiles } from './characterProfiles';
-const spectatorWalkingAssetUrls: Record<string, string> = {
-  'spectator-01/spectator-01-walking-01-front.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-01-front.png', import.meta.url).href,
-  'spectator-01/spectator-01-walking-02-right.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-02-right.png', import.meta.url).href,
-  'spectator-01/spectator-01-walking-03-left.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-03-left.png', import.meta.url).href,
-  'spectator-01/spectator-01-walking-04-back.png': new URL('../assets/spectators/spectator-01/spectator-01-walking-04-back.png', import.meta.url).href,
-  'spectator-02/spectator-02-walking-01-front.png': new URL('../assets/spectators/spectator-02/spectator-02-walking-01-front.png', import.meta.url).href,
-  'spectator-02/spectator-02-walking-02-right.png': new URL('../assets/spectators/spectator-02/spectator-02-walking-02-right.png', import.meta.url).href,
-  'spectator-02/spectator-02-walking-03-left.png': new URL('../assets/spectators/spectator-02/spectator-02-walking-03-left.png', import.meta.url).href,
-  'spectator-02/spectator-02-walking-04-back.png': new URL('../assets/spectators/spectator-02/spectator-02-walking-04-back.png', import.meta.url).href,
-  'spectator-05/spectator-05-walking-01-front.png': new URL('../assets/spectators/spectator-05/spectator-05-walking-01-front.png', import.meta.url).href,
-  'spectator-05/spectator-05-walking-02-right.png': new URL('../assets/spectators/spectator-05/spectator-05-walking-02-right.png', import.meta.url).href,
-  'spectator-05/spectator-05-walking-03-left.png': new URL('../assets/spectators/spectator-05/spectator-05-walking-03-left.png', import.meta.url).href,
-  'spectator-05/spectator-05-walking-04-back.png': new URL('../assets/spectators/spectator-05/spectator-05-walking-04-back.png', import.meta.url).href,
-  'spectator-06/spectator-06-walking-01-front.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-01-front.png', import.meta.url).href,
-  'spectator-06/spectator-06-walking-02-right.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-02-right.png', import.meta.url).href,
-  'spectator-06/spectator-06-walking-03-left.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-03-left.png', import.meta.url).href,
-  'spectator-06/spectator-06-walking-04-back.png': new URL('../assets/spectators/spectator-06/spectator-06-walking-04-back.png', import.meta.url).href,
-  'spectator-101/spectator-101-walking-01-front.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-01-front.png', import.meta.url).href,
-  'spectator-101/spectator-101-walking-02-right.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-02-right.png', import.meta.url).href,
-  'spectator-101/spectator-101-walking-03-left.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-03-left.png', import.meta.url).href,
-  'spectator-101/spectator-101-walking-04-back.png': new URL('../assets/spectators/spectator-101/spectator-101-walking-04-back.png', import.meta.url).href,
-  'spectator-102/spectator-102-walking-01-front.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-01-front.png', import.meta.url).href,
-  'spectator-102/spectator-102-walking-02-right.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-02-right.png', import.meta.url).href,
-  'spectator-102/spectator-102-walking-03-left.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-03-left.png', import.meta.url).href,
-  'spectator-102/spectator-102-walking-04-back.png': new URL('../assets/spectators/spectator-102/spectator-102-walking-04-back.png', import.meta.url).href,
-  'spectator-103/spectator-103-walking-01-front.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-01-front.png', import.meta.url).href,
-  'spectator-103/spectator-103-walking-02-right.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-02-right.png', import.meta.url).href,
-  'spectator-103/spectator-103-walking-03-left.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-03-left.png', import.meta.url).href,
-  'spectator-103/spectator-103-walking-04-back.png': new URL('../assets/spectators/spectator-103/spectator-103-walking-04-back.png', import.meta.url).href,
-  'spectator-104/spectator-104-walking-01-front.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-01-front.png', import.meta.url).href,
-  'spectator-104/spectator-104-walking-02-right.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-02-right.png', import.meta.url).href,
-  'spectator-104/spectator-104-walking-03-left.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-03-left.png', import.meta.url).href,
-  'spectator-104/spectator-104-walking-04-back.png': new URL('../assets/spectators/spectator-104/spectator-104-walking-04-back.png', import.meta.url).href,
-  'spectator-105/spectator-105-walking-01-front.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-01-front.png', import.meta.url).href,
-  'spectator-105/spectator-105-walking-02-right.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-02-right.png', import.meta.url).href,
-  'spectator-105/spectator-105-walking-03-left.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-03-left.png', import.meta.url).href,
-  'spectator-105/spectator-105-walking-04-back.png': new URL('../assets/spectators/spectator-105/spectator-105-walking-04-back.png', import.meta.url).href,
-  'spectator-10/spectator-10-walking-01-front.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-01-front.png', import.meta.url).href,
-  'spectator-10/spectator-10-walking-02-right.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-02-right.png', import.meta.url).href,
-  'spectator-10/spectator-10-walking-03-left.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-03-left.png', import.meta.url).href,
-  'spectator-10/spectator-10-walking-04-back.png': new URL('../assets/spectators/spectator-10/spectator-10-walking-04-back.png', import.meta.url).href,
-  'spectator-106/spectator-106-walking-01-front.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-01-front.png', import.meta.url).href,
-  'spectator-106/spectator-106-walking-02-right.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-02-right.png', import.meta.url).href,
-  'spectator-106/spectator-106-walking-03-left.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-03-left.png', import.meta.url).href,
-  'spectator-106/spectator-106-walking-04-back.png': new URL('../assets/spectators/spectator-106/spectator-106-walking-04-back.png', import.meta.url).href,
-  'spectator-107/spectator-107-walking-01-front.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-01-front.png', import.meta.url).href,
-  'spectator-107/spectator-107-walking-02-right.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-02-right.png', import.meta.url).href,
-  'spectator-107/spectator-107-walking-03-left.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-03-left.png', import.meta.url).href,
-  'spectator-107/spectator-107-walking-04-back.png': new URL('../assets/spectators/spectator-107/spectator-107-walking-04-back.png', import.meta.url).href,
-  'spectator-09/spectator-09-walking-01-front.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-01-front.png', import.meta.url).href,
-  'spectator-09/spectator-09-walking-02-right.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-02-right.png', import.meta.url).href,
-  'spectator-09/spectator-09-walking-03-left.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-03-left.png', import.meta.url).href,
-  'spectator-09/spectator-09-walking-04-back.png': new URL('../assets/spectators/spectator-09/spectator-09-walking-04-back.png', import.meta.url).href,
-  'spectator-11/spectator-11-walking-01-front.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-01-front.png', import.meta.url).href,
-  'spectator-11/spectator-11-walking-02-right.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-02-right.png', import.meta.url).href,
-  'spectator-11/spectator-11-walking-03-left.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-03-left.png', import.meta.url).href,
-  'spectator-11/spectator-11-walking-04-back.png': new URL('../assets/spectators/spectator-11/spectator-11-walking-04-back.png', import.meta.url).href,
-  'spectator-12/spectator-12-walking-01-front.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-01-front.png', import.meta.url).href,
-  'spectator-12/spectator-12-walking-02-right.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-02-right.png', import.meta.url).href,
-  'spectator-12/spectator-12-walking-03-left.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-03-left.png', import.meta.url).href,
-  'spectator-12/spectator-12-walking-04-back.png': new URL('../assets/spectators/spectator-12/spectator-12-walking-04-back.png', import.meta.url).href,
-};
+import { characterProfileById, characterProfiles, spectatorPlacements } from './characterProfiles';
+/** Vite discovers every spectator image; profiles only need to store the asset path. */
+const spectatorAssetUrls = import.meta.glob('../assets/spectators/**/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
+function getSpectatorAssetUrl(asset: string): string | undefined {
+  return spectatorAssetUrls[`../assets/spectators/${asset}`];
+}
+
+// The main banner is centered on the front wall. Only a single child may occupy its foreground.
+const FRONT_BANNER_VIEWER_ZONE = { minX: -1.89, maxX: 1.89, minZ: 4.15, maxZ: 6.90 };
+
+function validateCharacterRegistry() {
+  const profileIds = new Set<string>();
+  const sceneSlots = new Set<number>();
+  const warnings: string[] = [];
+
+  for (const profile of characterProfiles) {
+    if (profileIds.has(profile.id)) warnings.push(`Duplicate profile ID: ${profile.id}`);
+    profileIds.add(profile.id);
+
+    const placement = spectatorPlacements[profile.id];
+    if (profile.useAsSpectator) {
+      if (!placement) warnings.push(`${profile.id}: viewer is enabled but has no placement.`);
+      if (!getSpectatorAssetUrl(placement?.viewingAsset ?? profile.spectatorAsset)) {
+        warnings.push(`${profile.id}: viewer image could not be resolved.`);
+      }
+      if (placement?.sceneSlot !== undefined) {
+        if (sceneSlots.has(placement.sceneSlot)) warnings.push(`Duplicate viewer scene slot: ${placement.sceneSlot}`);
+        sceneSlots.add(placement.sceneSlot);
+      }
+      if (placement
+        && placement.x >= FRONT_BANNER_VIEWER_ZONE.minX
+        && placement.x <= FRONT_BANNER_VIEWER_ZONE.maxX
+        && placement.z >= FRONT_BANNER_VIEWER_ZONE.minZ
+        && placement.z <= FRONT_BANNER_VIEWER_ZONE.maxZ
+        && !profile.isSingleChild) {
+        warnings.push(`${profile.id}: only a single child may be placed in front of the main banner.`);
+      }
+      if (placement?.audienceLayer === 'child-front' && !profile.isSingleChild) {
+        warnings.push(`${profile.id}: the tora-pole front row is reserved for single child characters.`);
+      }
+      if (placement?.audienceLayer === 'adult-rear' && profile.isSingleChild) {
+        warnings.push(`${profile.id}: a single child should use the tora-pole front row.`);
+      }
+    }
+
+    if (profile.useAsWalker) {
+      if (!profile.walkingAssets || profile.walkingAssets.length !== 4) {
+        warnings.push(`${profile.id}: walker is enabled but does not define four walking cuts.`);
+      } else if (profile.walkingAssets.some((asset) => !getSpectatorAssetUrl(asset))) {
+        warnings.push(`${profile.id}: one or more walking images could not be resolved.`);
+      }
+    }
+  }
+
+  const placedViewers = characterProfiles
+    .filter((profile) => profile.useAsSpectator && spectatorPlacements[profile.id])
+    .map((profile) => ({ profile, placement: spectatorPlacements[profile.id] }));
+  for (let index = 0; index < placedViewers.length; index += 1) {
+    for (let otherIndex = index + 1; otherIndex < placedViewers.length; otherIndex += 1) {
+      const current = placedViewers[index];
+      const other = placedViewers[otherIndex];
+      const distance = Math.hypot(current.placement.x - other.placement.x, current.placement.z - other.placement.z);
+      const minimumDistance = (current.placement.clearanceRadius ?? 0.45) + (other.placement.clearanceRadius ?? 0.45);
+      if (distance < minimumDistance) {
+        warnings.push(`${current.profile.id} and ${other.profile.id}: viewer placements are too close (${distance.toFixed(2)} < ${minimumDistance.toFixed(2)}).`);
+      }
+    }
+  }
+
+  if (warnings.length > 0) console.warn('[CharacterRegistry]', warnings);
+}
 /** Development-only: set true to draw non-interactive ID labels. */
 const SHOW_OBJECT_IDS = false;
 /** Temporary locator for the illustrated-person prototype only. */
@@ -192,6 +205,7 @@ export class ConstructionScene {
   private mallWalkerNextCharacterIndex = 0;
   private mallWalkerSpeedMultipliers = [0.86, 0.91, 0.96, 1.00, 1.04, 1.09, 1.14];
   private mallCharacterCatalog: Record<string, { viewingVariants: string[]; walkingPoses?: THREE.Texture[] }> = {};
+  private spectatorCutTextures: Record<string, THREE.Texture> = {};
 
   /** Each character's walking multiplier is managed in its profile. */
   private getMallWalkerCharacterScale(characterId: string) {
@@ -266,9 +280,44 @@ export class ConstructionScene {
     });
     return entries;
   }
+  /** Temporarily switches every registered stationary spectator to a viewing cut. */
+  public setSpectatorViewingCut(cutIndex: number) {
+    this.sceneGroup.traverse((object) => {
+      if (!(object instanceof THREE.Sprite)) return;
+      const ownerId = object.userData.ownerId;
+      if (typeof ownerId !== 'string' || !ownerId.startsWith('spectator_')) return;
+      const profile = characterProfileById[ownerId];
+      const fallbackAsset = cutIndex === 7 ? profile?.spectatorAsset.replace('viewing-01-smile.png', 'viewing-07-banzai.png') : profile?.spectatorAsset;
+      const asset = profile?.viewingAssets?.[cutIndex - 1] ?? fallbackAsset;
+      const url = asset && getSpectatorAssetUrl(asset);
+      if (!url) return;
+      const texture = this.spectatorCutTextures[asset] ?? new THREE.TextureLoader().load(url);
+      this.spectatorCutTextures[asset] = texture;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = object.material as THREE.SpriteMaterial;
+      material.map = texture;
+      material.needsUpdate = true;
+    });
+  }
   constructor() {
     this.sceneGroup = new THREE.Group();
     this.sceneGroup.name = 'PC01AttractionScene';
+    // Preload normal and banzai cuts before gameplay, so critical switching never
+    // starts image IO during lever movement.
+    const preloadLoader = new THREE.TextureLoader();
+    characterProfiles.filter((profile) => profile.useAsSpectator).forEach((profile) => {
+      const assets = [
+        profile.viewingAssets?.[0] ?? profile.spectatorAsset,
+        profile.viewingAssets?.[6] ?? profile.spectatorAsset.replace('viewing-01-smile.png', 'viewing-07-banzai.png'),
+      ];
+      assets.forEach((asset) => {
+        const url = getSpectatorAssetUrl(asset);
+        if (!url || this.spectatorCutTextures[asset]) return;
+        const texture = preloadLoader.load(url);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        this.spectatorCutTextures[asset] = texture;
+      });
+    });
 
     const celGradient = getHandDrawnIllustrationGradient();
 
@@ -592,6 +641,7 @@ export class ConstructionScene {
     this.sceneGroup.add(fenceGroup);
   }
   private buildSpectatorTestModels(celGradient: THREE.CanvasTexture) {
+    validateCharacterRegistry();
     const spectators = new THREE.Group();
     spectators.name = 'SpectatorTestModels_VisualOnly';
     const skinMat = new THREE.MeshToonMaterial({ color: 0xf1c29b, gradientMap: celGradient });
@@ -619,56 +669,22 @@ export class ConstructionScene {
       const shirtMat = new THREE.MeshToonMaterial({ color: shirtColor, gradientMap: celGradient });
       // S01 anchors the rear row and S02 anchors the right-side viewing row.
       // All following people keep the existing low-poly construction unchanged.
-      const illustratedSpectator = ({
-        0: '01', 1: '05',
-        6: '02', 7: '06', 8: '09',
-        12: '03', 13: '07', 14: '10',
-        16: '04', 17: '08',
-      } as Record<number, string | undefined>)[peopleCreated] ?? null;
-      // The remaining simple figures are deliberately hidden; only the hand-drawn spectators remain.
-      if (!illustratedSpectator) {
+      const illustratedProfile = characterProfiles.find(
+        (profile) => profile.useAsSpectator && spectatorPlacements[profile.id]?.sceneSlot === peopleCreated
+      );
+      // The remaining simple figures are deliberately hidden; only registered hand-drawn spectators remain.
+      if (!illustratedProfile) {
         peopleCreated += 1;
         return;
       }
-      if (illustratedSpectator) {
-        const illustrationAsset = illustratedSpectator === '01'
-          ? 'spectator-01/spectator-01-viewing-01-smile.png'
-          : illustratedSpectator === '08'
-          ? new URL('../assets/spectators/spectator-08/spectator-08-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '07'
-          ? new URL('../assets/spectators/spectator-07/spectator-07-viewing-07-banzai.png', import.meta.url).href
-          : illustratedSpectator === '06'
-          ? new URL('../assets/spectators/spectator-06/spectator-06-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '05'
-          ? new URL('../assets/spectators/spectator-05/spectator-05-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '04'
-          ? new URL('../assets/spectators/spectator-04/spectator-04-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '03'
-          ? new URL('../assets/spectators/spectator-03/spectator-03-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '02'
-          ? 'spectator-02/spectator-02-viewing-01-smile.png'
-          : `spectator-${illustratedSpectator}-handdrawn.png`;
-        const illustrationUrl = illustratedSpectator === '01'
-          ? new URL('../assets/spectators/spectator-01/spectator-01-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '09'
-          ? new URL('../assets/spectators/spectator-09/spectator-09-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '10'
-          ? new URL('../assets/spectators/spectator-10/spectator-10-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '08'
-          ? new URL('../assets/spectators/spectator-08/spectator-08-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '07'
-          ? new URL('../assets/spectators/spectator-07/spectator-07-viewing-07-banzai.png', import.meta.url).href
-          : illustratedSpectator === '06'
-          ? new URL('../assets/spectators/spectator-06/spectator-06-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '05'
-          ? new URL('../assets/spectators/spectator-05/spectator-05-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '04'
-          ? new URL('../assets/spectators/spectator-04/spectator-04-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '03'
-          ? new URL('../assets/spectators/spectator-03/spectator-03-viewing-01-smile.png', import.meta.url).href
-          : illustratedSpectator === '02'
-          ? new URL('../assets/spectators/spectator-02/spectator-02-viewing-01-smile.png', import.meta.url).href
-          : new URL(`../assets/spectators/${illustrationAsset}`, import.meta.url).href;
+      if (illustratedProfile) {
+        const placement = spectatorPlacements[illustratedProfile.id];
+        const illustrationUrl = getSpectatorAssetUrl(placement.viewingAsset ?? illustratedProfile.spectatorAsset);
+        if (!illustrationUrl) {
+          console.warn(`[CharacterRegistry] ${illustratedProfile.id}: fixed viewer image is missing.`);
+          peopleCreated += 1;
+          return;
+        }
         const illustrationTexture = new THREE.TextureLoader().load(illustrationUrl);
         illustrationTexture.colorSpace = THREE.SRGBColorSpace;
         const illustration = new THREE.Sprite(
@@ -679,13 +695,12 @@ export class ConstructionScene {
             depthWrite: false,
           })
         );
-        illustration.name = `spectator_${illustratedSpectator}__handdrawn_billboard`;
-        illustration.userData.ownerId = `spectator_${illustratedSpectator}`;
+        illustration.name = `${illustratedProfile.id}__handdrawn_billboard`;
+        illustration.userData.ownerId = illustratedProfile.id;
         illustration.userData.nonInteractive = true;
         illustration.center.set(0.5, 0);
-        const spectatorScale = characterProfileById[`spectator_${illustratedSpectator}`]?.spectatorScale ?? 1;
-        const illustrationHeight = (illustratedSpectator === '04' ? 1.595 : ['03', '07', '08'].includes(illustratedSpectator) ? 1.45 : illustratedSpectator === '02' ? 2.3625 : 2.25) * spectatorScale;
-        illustration.scale.set(illustrationHeight * (2 / 3), illustrationHeight, 1);
+        const illustrationHeight = (placement.baseHeight ?? 2.25) * illustratedProfile.spectatorScale;
+        illustration.scale.set(illustrationHeight * (placement.aspectRatio ?? 2 / 3), illustrationHeight, 1);
         illustration.renderOrder = 1;
         illustration.raycast = () => {};
         person.add(illustration);
@@ -843,17 +858,25 @@ export class ConstructionScene {
           addArm(1, -0.16);
         }
       }
-      person.position.set(x, 0, z);
+      const registeredPlacement = illustratedProfile ? spectatorPlacements[illustratedProfile.id] : undefined;
+      person.position.set(registeredPlacement?.x ?? x, 0, registeredPlacement?.z ?? z);
       person.lookAt(targetX, height * 0.52, targetZ);
       const isPasserby = peopleCreated >= 19;
       const isChild = !isPasserby && height < 1.5;
-      const id = isPasserby
+      const id = illustratedProfile?.id ?? (isPasserby
         ? `passerby_${String(++passerbyCount).padStart(2, '0')}`
         : isChild
           ? `child_${String(++childCount).padStart(2, '0')}`
-          : `spectator_${String(++spectatorCount).padStart(2, '0')}`;
-      const label = isPasserby ? `PB${String(passerbyCount).padStart(2, '0')}` : isChild ? `C${String(childCount).padStart(2, '0')}` : `P${String(spectatorCount).padStart(2, '0')}`;
-      registerObjectId(person, id, isPasserby ? 'passerby' : isChild ? 'child' : 'spectator', label, height + 0.18);
+          : `spectator_${String(++spectatorCount).padStart(2, '0')}`);
+      const label = illustratedProfile
+        ? id.replace('spectator_', 'S')
+        : isPasserby
+          ? `PB${String(passerbyCount).padStart(2, '0')}`
+          : isChild
+            ? `C${String(childCount).padStart(2, '0')}`
+            : `P${String(spectatorCount).padStart(2, '0')}`;
+      const objectType = illustratedProfile ? 'spectator' : isPasserby ? 'passerby' : isChild ? 'child' : 'spectator';
+      registerObjectId(person, id, objectType, label, height + 0.18);
       if (id === 'spectator_01') addSpectator01Highlight(person, height);
       peopleCreated += 1;
       spectators.add(person);
@@ -877,65 +900,15 @@ export class ConstructionScene {
     addSpectator(3.71, 3.20, 1.92, 0x4f46e5, 0, 'watch', 1.45, 3.05);
     addSpectator(3.62, 3.64, 1.28, 0xf97316, 2, 'wave', 1.45, 3.20);
 
-    // spectator_106: right-side open space. Static visual-only billboard; no collider or raycast.
-    const spectator106 = new THREE.Group();
-    const spectator106Id = 'spectator_106';
-    const spectator106Texture = new THREE.TextureLoader().load(
-      new URL('../assets/spectators/spectator-106/spectator-106-viewing-01-smile.png', import.meta.url).href
-    );
-    spectator106Texture.colorSpace = THREE.SRGBColorSpace;
-    const spectator106Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: spectator106Texture,
-      transparent: true,
-      alphaTest: 0.01,
-      depthWrite: false,
-    }));
-    spectator106Sprite.name = `${spectator106Id}__handdrawn_billboard`;
-    spectator106Sprite.userData.ownerId = spectator106Id;
-    spectator106Sprite.userData.nonInteractive = true;
-    spectator106Sprite.center.set(0.5, 0);
-    const spectator106Height = 2.25 * (characterProfileById[spectator106Id]?.spectatorScale ?? 1);
-    spectator106Sprite.scale.set(spectator106Height * (1374 / 1145), spectator106Height, 1);
-    spectator106Sprite.renderOrder = 1;
-    spectator106Sprite.raycast = () => {};
-    spectator106.add(spectator106Sprite);
-    spectator106.position.set(4.85, 0, -0.55);
-    registerObjectId(spectator106, spectator106Id, 'spectator', 'S106', spectator106Height + 0.18);
-    spectators.add(spectator106);
-
-    // spectator_107: rear open space. Static visual-only family billboard; no collider or raycast.
-    const spectator107 = new THREE.Group();
-    const spectator107Id = 'spectator_107';
-    const spectator107Texture = new THREE.TextureLoader().load(
-      new URL('../assets/spectators/spectator-107/spectator-107-viewing-01-smile.png', import.meta.url).href
-    );
-    spectator107Texture.colorSpace = THREE.SRGBColorSpace;
-    const spectator107Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: spectator107Texture,
-      transparent: true,
-      alphaTest: 0.01,
-      depthWrite: false,
-    }));
-    spectator107Sprite.name = `${spectator107Id}__handdrawn_billboard`;
-    spectator107Sprite.userData.ownerId = spectator107Id;
-    spectator107Sprite.userData.nonInteractive = true;
-    spectator107Sprite.center.set(0.5, 0);
-    const spectator107Height = 2.25 * (characterProfileById[spectator107Id]?.spectatorScale ?? 1);
-    spectator107Sprite.scale.set(spectator107Height * (2 / 3), spectator107Height, 1);
-    spectator107Sprite.renderOrder = 1;
-    spectator107Sprite.raycast = () => {};
-    spectator107.add(spectator107Sprite);
-    spectator107.position.set(2.50, 0, -3.45);
-    registerObjectId(spectator107, spectator107Id, 'spectator', 'S107', spectator107Height + 0.18);
-    spectators.add(spectator107);
-
-    // Additional illustrated spectators: fixed, visual-only billboards around the outer viewing ring.
-    const addOuterIllustratedSpectator = (
-      id: 'spectator_11' | 'spectator_12' | 'spectator_101' | 'spectator_102' | 'spectator_103' | 'spectator_104' | 'spectator_105',
-      viewingUrl: string,
-      x: number,
-      z: number,
-    ) => {
+    // Independent fixed viewers are created from the shared placement registry.
+    const addConfiguredSpectator = (id: string) => {
+      const profile = characterProfileById[id];
+      const placement = spectatorPlacements[id];
+      const viewingUrl = profile && placement && getSpectatorAssetUrl(placement.viewingAsset ?? profile.spectatorAsset);
+      if (!profile || !placement || !viewingUrl) {
+        console.warn(`[CharacterRegistry] ${id}: fixed viewer could not be created.`);
+        return;
+      }
       const person = new THREE.Group();
       const texture = new THREE.TextureLoader().load(viewingUrl);
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -944,22 +917,18 @@ export class ConstructionScene {
       sprite.userData.ownerId = id;
       sprite.userData.nonInteractive = true;
       sprite.center.set(0.5, 0);
-      const height = 2.25 * (characterProfileById[id]?.spectatorScale ?? 1);
-      sprite.scale.set(height * (2 / 3), height, 1);
+      const height = (placement.baseHeight ?? 2.25) * profile.spectatorScale;
+      sprite.scale.set(height * (placement.aspectRatio ?? 2 / 3), height, 1);
       sprite.renderOrder = 1;
       sprite.raycast = () => {};
       person.add(sprite);
-      person.position.set(x, 0, z);
+      person.position.set(placement.x, 0, placement.z);
       registerObjectId(person, id, 'spectator', id.replace('spectator_', 'S'), height + 0.18);
       spectators.add(person);
     };
-    addOuterIllustratedSpectator('spectator_11', new URL('../assets/spectators/spectator-11/spectator-11-viewing-01-smile.png', import.meta.url).href, -2.25, -3.45);
-    addOuterIllustratedSpectator('spectator_12', new URL('../assets/spectators/spectator-12/spectator-12-viewing-01-smile.png', import.meta.url).href, 0.65, -3.45);
-    addOuterIllustratedSpectator('spectator_101', new URL('../assets/spectators/spectator-101/spectator-101-viewing-01-smile.png', import.meta.url).href, -4.15, 0.40);
-    addOuterIllustratedSpectator('spectator_102', new URL('../assets/spectators/spectator-102/spectator-102-viewing-01-smile.png', import.meta.url).href, 4.25, 0.65);
-    addOuterIllustratedSpectator('spectator_103', new URL('../assets/spectators/spectator-103/spectator-103-viewing-01-smile.png', import.meta.url).href, -3.85, 3.35);
-    addOuterIllustratedSpectator('spectator_104', new URL('../assets/spectators/spectator-104/spectator-104-viewing-01-smile.png', import.meta.url).href, 3.85, 3.05);
-    addOuterIllustratedSpectator('spectator_105', new URL('../assets/spectators/spectator-105/spectator-105-viewing-01-smile.png', import.meta.url).href, 0.00, 4.75);
+    characterProfiles
+      .filter((profile) => profile.useAsSpectator && spectatorPlacements[profile.id]?.sceneSlot === undefined)
+      .forEach((profile) => addConfiguredSpectator(profile.id));
     // Right-side family group: three extra viewers outside the tora-pole.
     addSpectator(3.43, 1.48, 1.88, 0x2563eb, 1, 'watch', 1.1, 2.0);
     addSpectator(3.43, 2.26, 1.30, 0xf43f5e, 2, 'wave', 1.0, 2.25);
@@ -999,7 +968,7 @@ export class ConstructionScene {
    */
   private buildMallWalkers() {
     this.mallWalkerCharacterPool = characterProfiles
-      .filter((profile) => profile.useAsWalker && profile.walkingAssets && profile.walkingAssets.every((asset) => Boolean(spectatorWalkingAssetUrls[asset])))
+      .filter((profile) => profile.useAsWalker && profile.walkingAssets && profile.walkingAssets.every((asset) => Boolean(getSpectatorAssetUrl(asset))))
       // Initial browser load uses the 101+ walking set first; 01-100 remain rare fallback entries.
       .sort((left, right) => {
         const leftNumber = Number(left.id.replace('spectator_', ''));
@@ -1012,9 +981,10 @@ export class ConstructionScene {
       .map((profile) => profile.id);
     if (this.mallWalkerCharacterPool.length === 0) return;
     const loadSprite = (asset: string) => {
-      const url = spectatorWalkingAssetUrls[asset];
+      const url = getSpectatorAssetUrl(asset);
       if (!url) throw new Error(`Missing walking image: ${asset}`);
-      const texture = new THREE.TextureLoader().load(url);
+      const texture = this.spectatorCutTextures[asset] ?? new THREE.TextureLoader().load(url);
+      this.spectatorCutTextures[asset] = texture;
       texture.colorSpace = THREE.SRGBColorSpace;
       return texture;
     };
@@ -1769,7 +1739,7 @@ export class ConstructionScene {
       new THREE.BoxGeometry(0.38, 0.04, 0.22),
       chuteMat
     );
-    chute.position.set(1.22, 1.00, 3.10);
+    chute.position.set(1.22, 1.00, 3.22);
     chute.rotation.z = 0.28; // Tilted downward toward pool interior (-X)
     chute.rotation.y = -0.15;
     this.returnUnitGroup.add(chute);
@@ -1786,7 +1756,7 @@ export class ConstructionScene {
         new THREE.BoxGeometry(0.38, 0.08, 0.02),
         chuteGuideMat
       );
-      guide.position.set(1.22, 1.03, 3.10 + gz);
+      guide.position.set(1.22, 1.03, 3.22 + gz);
       guide.rotation.z = 0.28;
       guide.rotation.y = -0.15;
       this.returnUnitGroup.add(guide);

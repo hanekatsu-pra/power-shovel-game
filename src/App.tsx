@@ -103,7 +103,12 @@ export default function App() {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const constructionSceneRef = useRef<ConstructionScene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const comboTimerRef = useRef<number | null>(null);
+  const comboTimerRef = useRef<number | null>(null);  const criticalFullBucketSeenRef = useRef(false);
+  const criticalDropStartedAtRef = useRef<number | null>(null);
+  const criticalTriggeredRef = useRef(false);
+  const criticalLoadedBaselineRef = useRef(0);
+  const confirmedBasketEntriesRef = useRef(0);
+  const criticalRestoreTimerRef = useRef<number | null>(null);
 
   const engineStateRef = useRef<'off' | 'starting' | 'running'>('running');
   const cameraModeRef = useRef<'leftRear' | 'centerRear' | 'cab'>('leftRear');
@@ -286,6 +291,7 @@ export default function App() {
 
     // Callback when any ball is loaded into the dump bed
     sim.onBallLoadedCallback = (_loadedCount, _ballId, _isGolden) => {
+      confirmedBasketEntriesRef.current += 1;
       setStats((prev) => {
         const nextCount = prev.ballsLoaded + 1;
 
@@ -756,6 +762,30 @@ export default function App() {
         constructionScene.dumpBedBounds
       );
 
+      // Critical: each full 50-ball bucket arms a fresh attempt.
+      const scoopedNow = sim.getScoopedCount();
+      if (scoopedNow >= 50 && !criticalFullBucketSeenRef.current) {
+        criticalFullBucketSeenRef.current = true;
+        criticalTriggeredRef.current = false;
+        criticalDropStartedAtRef.current = null;
+        criticalLoadedBaselineRef.current = confirmedBasketEntriesRef.current;
+      }
+      // The first confirmed basket entry starts this attempt's five-second clock.
+      if (criticalFullBucketSeenRef.current && !criticalTriggeredRef.current && criticalDropStartedAtRef.current === null
+        && confirmedBasketEntriesRef.current > criticalLoadedBaselineRef.current) {
+        criticalDropStartedAtRef.current = performance.now();
+      }
+      if (criticalFullBucketSeenRef.current && !criticalTriggeredRef.current && criticalDropStartedAtRef.current !== null) {
+        const enteredThisAttempt = confirmedBasketEntriesRef.current - criticalLoadedBaselineRef.current;
+        if (enteredThisAttempt >= 50 && performance.now() - criticalDropStartedAtRef.current <= 5000) {
+          criticalTriggeredRef.current = true;
+          criticalFullBucketSeenRef.current = false;
+          constructionScene.setSpectatorViewingCut(7);
+          criticalRestoreTimerRef.current = window.setTimeout(() => constructionScene.setSpectatorViewingCut(1), 5000);
+        } else if (performance.now() - criticalDropStartedAtRef.current > 5000) {
+          criticalFullBucketSeenRef.current = false;
+        }
+      }
       // Periodically update bucket scoop count for HUD (every 6 frames)
       scoopCheckTicker++;
       if (scoopCheckTicker % 6 === 0) {
