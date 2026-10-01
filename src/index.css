@@ -33,3 +33,7 @@ body,
   .game-hud-action-controls { gap: 0.2rem; }
   .game-hud-instruction { left: 33%; top: auto; bottom: 10rem; }
 }
+
+.game-hud-instruction {
+  bottom: clamp(4.5rem, 10vh, 7rem) !important;
+}
