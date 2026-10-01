@@ -43,6 +43,7 @@ for (const x of [-BUCKET_OUTER_WIDTH / 2, 0, BUCKET_OUTER_WIDTH / 2]) {
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameViewportRef = useRef<HTMLDivElement>(null);
 
   // Excavator dynamic joint state refs
   const anglesRef = useRef<ExcavatorAngles>({
@@ -230,7 +231,7 @@ export default function App() {
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
       48,
-      window.innerWidth / window.innerHeight,
+      1,
       0.1,
       60
     );
@@ -243,7 +244,6 @@ export default function App() {
       powerPreference: 'high-performance',
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -343,13 +343,27 @@ export default function App() {
     // Window Resize Handler
     const handleResize = () => {
       if (!canvas) return;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const viewport = window.visualViewport;
+      const viewportWidth = Math.round(viewport?.width ?? window.innerWidth);
+      const viewportHeight = Math.round(viewport?.height ?? window.innerHeight);
+      const container = gameViewportRef.current;
+      if (container) {
+        container.style.setProperty('--game-viewport-width', `${viewportWidth}px`);
+        container.style.setProperty('--game-viewport-height', `${viewportHeight}px`);
+      }
+      const bounds = canvas.getBoundingClientRect();
+      const w = Math.max(1, Math.round(bounds.width || viewportWidth));
+      const h = Math.max(1, Math.round(bounds.height || viewportHeight));
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h, false);
     };
+    handleResize();
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('scroll', handleResize);
 
     // Animation Render Loop
     let lastTime = performance.now();
@@ -780,6 +794,7 @@ export default function App() {
         if (enteredThisAttempt >= 50 && performance.now() - criticalDropStartedAtRef.current <= 5000) {
           criticalTriggeredRef.current = true;
           criticalFullBucketSeenRef.current = false;
+          soundManager.playSuccessChime();
           constructionScene.setSpectatorViewingCut(7);
           criticalRestoreTimerRef.current = window.setTimeout(() => constructionScene.setSpectatorViewingCut(1), 5000);
         } else if (performance.now() - criticalDropStartedAtRef.current > 5000) {
@@ -829,6 +844,9 @@ export default function App() {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
       renderer.dispose();
       soundManager.silenceEngine();
       if (comboTimerRef.current) window.clearTimeout(comboTimerRef.current);
@@ -866,7 +884,8 @@ export default function App() {
   return (
     <div
       id="game-viewport-container"
-      className="relative w-screen h-screen overflow-hidden select-none touch-none bg-slate-900 font-sans"
+      ref={gameViewportRef}
+      className="fixed inset-0 overflow-hidden select-none touch-none bg-slate-900 font-sans"
     >
       {/* 3D WebGL Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block touch-none" />
@@ -881,6 +900,7 @@ export default function App() {
       <OrientationWarning />
 
       {DEBUG && (
+        <div className="mobile-debug-hidden">
         <DebugPanel
           bucketCount={bucketScoopCount}
           swingAngle={anglesRef.current.swing}
@@ -893,6 +913,7 @@ export default function App() {
           collisionState={collisionState}
           collisionDebug={collisionDebug}
         />
+        </div>
       )}
 
       {/* Heads-up display with score, status, controls, and aligned camera & ignition key windows */}
