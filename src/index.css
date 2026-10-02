@@ -39,7 +39,12 @@ body,
 }
 
 .game-hud-instruction {
-  left: clamp(12rem, 22vw, 32rem) !important;
+  left: clamp(10rem, 16vw, 20rem) !important;
   top: clamp(6.5rem, 20vh, 13rem) !important;
   bottom: auto !important;
+}
+
+.game-hud-action-banner {
+  left: clamp(10rem, 16vw, 20rem) !important;
+  top: clamp(6.5rem, 20vh, 13rem) !important;
 }

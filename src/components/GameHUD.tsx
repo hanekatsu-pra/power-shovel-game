@@ -167,7 +167,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 }`}
                 title="モード切替"
               >
-                {stats.mode === 'free' ? '自由練習' : '60s チャレンジ'}
+                {stats.mode === 'free' ? '自由練習' : '120s チャレンジ'}
               </button>
 
               {/* Audio toggle */}
@@ -207,7 +207,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
 
           {/* Ignition Key Switch: Positioned right beneath the mode selection */}
-          <div className="w-full max-w-[280px]">
+          <div className="w-fit max-w-[280px]">
             <IgnitionKey
               engineState={engineState}
               onStartEngine={onStartEngine}
@@ -236,7 +236,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {currentActionText && (
             <div
               id="active-action-banner"
-              className="absolute left-[72%] top-[47%] -translate-x-1/2 max-w-[18rem] text-center leading-snug px-4 py-1.5 rounded-full border text-xs sm:text-sm font-extrabold tracking-wide backdrop-blur-md shadow-xl bg-slate-900/90 border-amber-400/70 text-amber-300 animate-pulse transition-all"
+              className="game-hud-action-banner absolute left-[16%] top-[22%] -translate-x-1/2 max-w-[18rem] text-center leading-snug px-4 py-1.5 rounded-full border text-xs sm:text-sm font-extrabold tracking-wide backdrop-blur-md shadow-xl bg-slate-900/90 border-amber-400/70 text-amber-300 animate-pulse transition-all"
               style={{ fontFamily: '"Zen Maru Gothic", sans-serif' }}
             >
               {currentActionText}

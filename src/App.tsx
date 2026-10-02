@@ -92,9 +92,10 @@ export default function App() {
     ballsLoaded: 0,
     totalBalls: 1000,
     goldenBallsLoaded: 0,
+    criticalCount: 0,
     combo: 1,
     operatorRank: '🐣 ひよこ見習い',
-    timeRemaining: 60,
+    timeRemaining: 120,
     isGameOver: false,
     mode: 'challenge',
   });
@@ -178,9 +179,10 @@ export default function App() {
         score: 0,
         ballsLoaded: 0,
         goldenBallsLoaded: 0,
+        criticalCount: 0,
         combo: 1,
         operatorRank: '🐣 ひよこ見習い',
-        timeRemaining: 60,
+        timeRemaining: 120,
         isGameOver: false,
       };
     });
@@ -215,9 +217,10 @@ export default function App() {
         score: 0,
         ballsLoaded: 0,
         goldenBallsLoaded: 0,
+        criticalCount: 0,
         combo: 1,
         operatorRank: '🐣 ひよこ見習い',
-        timeRemaining: 60,
+        timeRemaining: 120,
         isGameOver: false,
       };
     });
@@ -805,6 +808,7 @@ export default function App() {
         if (enteredThisAttempt >= 50 && performance.now() - criticalDropStartedAtRef.current <= 5000) {
           criticalTriggeredRef.current = true;
           criticalFullBucketSeenRef.current = false;
+          setStats((prev) => ({ ...prev, criticalCount: prev.criticalCount + 1 }));
           soundManager.playSuccessChime();
           constructionScene.setSpectatorViewingCut(7);
           criticalRestoreTimerRef.current = window.setTimeout(() => constructionScene.setSpectatorViewingCut(1), 5000);
