@@ -251,6 +251,30 @@ class SoundManager {
     });
   }
 
+  public playDisappointedChime() {
+    if (!this.ctx || this.isMuted || !this.isGameActive) return;
+    this.resume();
+
+    // A high, clear xylophone-style "chin" for a near-miss.
+    const startAt = this.ctx.currentTime + 0.015;
+    const playBellTone = (frequency: number, volume: number, duration: number) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(frequency, startAt);
+      gain.gain.setValueAtTime(0, startAt);
+      gain.gain.linearRampToValueAtTime(volume, startAt + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(startAt);
+      osc.stop(startAt + duration + 0.03);
+    };
+
+    playBellTone(6271.93, 0.045, 1.15); // G8
+    playBellTone(8372.02, 0.01, 0.62); // C9 overtone
+  }
   public playGoldenBallFanfare() {
     if (!this.ctx || this.isMuted || !this.isGameActive) return;
     this.resume();

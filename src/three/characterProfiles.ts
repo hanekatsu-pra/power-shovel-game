@@ -17,6 +17,8 @@ export type CharacterProfile = {
   walkerScale: number;
   /** Single child characters may be placed in front of the main banner. */
   isSingleChild?: boolean;
+  criticalEnabled?: boolean;
+  disappointedEnabled?: boolean;
   notes?: string;
 };
 /** A fixed, visual-only location for a character used as a viewer. */
@@ -27,7 +29,7 @@ export type SpectatorPlacement = {
   baseHeight?: number;
   aspectRatio?: number;
   clearanceRadius?: number;
-  audienceLayer?: 'child-front' | 'adult-rear' | 'general';
+  audienceLayer?: 'child-front' | 'adult-rear' | 'general' | 'background';
   viewingAsset?: string;
 };
 /** Canonical registry: spectator_man_01 is intentionally folded into spectator_11. */

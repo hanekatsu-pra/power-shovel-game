@@ -112,6 +112,13 @@ export default function App() {
   const criticalLoadedBaselineRef = useRef(0);
   const confirmedBasketEntriesRef = useRef(0);
   const criticalRestoreTimerRef = useRef<number | null>(null);
+  const audienceReactionActiveRef = useRef(false);
+  const audienceReactionTimersRef = useRef<number[]>([]);
+  const dumpMonitorActiveRef = useRef(false);
+  const dumpMonitorStartBucketCountRef = useRef(0);
+  const dumpMonitorStartLoadedRef = useRef(0);
+  const dumpMonitorEmptySinceRef = useRef<number | null>(null);
+  const dumpMonitorLastLoadedRef = useRef(0);
 
   const engineStateRef = useRef<'off' | 'starting' | 'running'>('off');
   const cameraModeRef = useRef<'leftRear' | 'centerRear' | 'cab'>('leftRear');
@@ -225,6 +232,16 @@ export default function App() {
       };
     });
     setBucketScoopCount(0);
+    criticalFullBucketSeenRef.current = false;
+    criticalDropStartedAtRef.current = null;
+    criticalTriggeredRef.current = false;
+    criticalLoadedBaselineRef.current = 0;
+    confirmedBasketEntriesRef.current = 0;
+    dumpMonitorActiveRef.current = false;
+    dumpMonitorStartBucketCountRef.current = 0;
+    dumpMonitorStartLoadedRef.current = 0;
+    dumpMonitorEmptySinceRef.current = null;
+    dumpMonitorLastLoadedRef.current = 0;
     setGuardWarningText('');
     setComboBannerText('');
   }, []);
@@ -338,6 +355,7 @@ export default function App() {
 
       setComboBannerText(banner);
       if (comboTimerRef.current) window.clearTimeout(comboTimerRef.current);
+      clearAudienceReactionTimers();
       comboTimerRef.current = window.setTimeout(() => {
         setComboBannerText('');
       }, 2600);
@@ -382,6 +400,30 @@ export default function App() {
     // Animation Render Loop
     let lastTime = performance.now();
     let animationFrameId: number;
+    let nextAmbientSpectatorChangeAt = performance.now() + 4500;
+    const clearAudienceReactionTimers = () => {
+      audienceReactionTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      audienceReactionTimersRef.current = [];
+    };
+    const playAudienceReaction = (reaction: 'critical' | 'disappointed', cutIndex: number) => {
+      clearAudienceReactionTimers();
+      audienceReactionActiveRef.current = true;
+      constructionScene.setSpectatorReactionCut(cutIndex, reaction, 0);
+      audienceReactionTimersRef.current.push(window.setTimeout(() => {
+        constructionScene.setSpectatorReactionCut(cutIndex, reaction, 1);
+      }, 100));
+      audienceReactionTimersRef.current.push(window.setTimeout(() => {
+        constructionScene.setSpectatorReactionCut(1, reaction, 0);
+      }, 5000));
+      audienceReactionTimersRef.current.push(window.setTimeout(() => {
+        constructionScene.setSpectatorReactionCut(1, reaction, 1);
+      }, 5100));
+      audienceReactionTimersRef.current.push(window.setTimeout(() => {
+        audienceReactionActiveRef.current = false;
+        audienceReactionTimersRef.current = [];
+        nextAmbientSpectatorChangeAt = performance.now() + 4000 + Math.random() * 2000;
+      }, 5200));
+    };
     let scoopCheckTicker = 0;
 
     const animate = (currentTime: number) => {
@@ -782,6 +824,8 @@ export default function App() {
       // Apply angles to 3D Excavator model
       excavator.setAngles(anglesRef.current);
 
+      const bucketCountBeforePhysics = sim.getScoopedCount();
+
       // Update color ball physics
       sim.update(
         delta,
@@ -810,13 +854,62 @@ export default function App() {
           criticalFullBucketSeenRef.current = false;
           setStats((prev) => ({ ...prev, criticalCount: prev.criticalCount + 1 }));
           soundManager.playSuccessChime();
-          constructionScene.setSpectatorViewingCut(7);
-          criticalRestoreTimerRef.current = window.setTimeout(() => constructionScene.setSpectatorViewingCut(1), 5000);
+          dumpMonitorActiveRef.current = false;
+          playAudienceReaction('critical', 7);
         } else if (performance.now() - criticalDropStartedAtRef.current > 5000) {
           criticalFullBucketSeenRef.current = false;
         }
       }
       // Periodically update bucket scoop count for HUD (every 6 frames)
+      // Disappointment monitor: arm only after a loaded bucket has left the pool.
+      const bucketPosition = excavator.bucketCenterWorldPos;
+      const poolMonitorMargin = 0.12;
+      const isBucketOutsidePool =
+        bucketPosition.x < constructionScene.poolBounds.minX - poolMonitorMargin ||
+        bucketPosition.x > constructionScene.poolBounds.maxX + poolMonitorMargin ||
+        bucketPosition.z < constructionScene.poolBounds.minZ - poolMonitorMargin ||
+        bucketPosition.z > constructionScene.poolBounds.maxZ + poolMonitorMargin;
+      const isAboveDumpBasket =
+        bucketPosition.x >= constructionScene.dumpBedBounds.minX &&
+        bucketPosition.x <= constructionScene.dumpBedBounds.maxX &&
+        bucketPosition.z >= constructionScene.dumpBedBounds.minZ &&
+        bucketPosition.z <= constructionScene.dumpBedBounds.maxZ &&
+        bucketPosition.y >= constructionScene.dumpBedBounds.floorY;
+      const isDumpMonitoringZone = isBucketOutsidePool || isAboveDumpBasket;
+
+      if (!dumpMonitorActiveRef.current && bucketCountBeforePhysics > 0 && isDumpMonitoringZone) {
+        dumpMonitorActiveRef.current = true;
+        dumpMonitorStartBucketCountRef.current = Math.max(1, bucketCountBeforePhysics);
+        dumpMonitorStartLoadedRef.current = confirmedBasketEntriesRef.current;
+        dumpMonitorEmptySinceRef.current = null;
+      }
+      if (dumpMonitorActiveRef.current) {
+        if (!isDumpMonitoringZone) {
+          dumpMonitorActiveRef.current = false;
+          dumpMonitorEmptySinceRef.current = null;
+        } else if (scoopedNow === 0) {
+          if (dumpMonitorEmptySinceRef.current === null) {
+            dumpMonitorEmptySinceRef.current = performance.now();
+          } else if (performance.now() - dumpMonitorEmptySinceRef.current >= 1000) {
+            const loadedDuringDump = confirmedBasketEntriesRef.current - dumpMonitorStartLoadedRef.current;
+            const successRatio = loadedDuringDump / dumpMonitorStartBucketCountRef.current;
+            if (successRatio <= 0.10 && !audienceReactionActiveRef.current) {
+              soundManager.playDisappointedChime();
+              playAudienceReaction('disappointed', 8);
+            }
+            dumpMonitorLastLoadedRef.current = confirmedBasketEntriesRef.current;
+            dumpMonitorActiveRef.current = false;
+            dumpMonitorEmptySinceRef.current = null;
+          }
+        } else {
+          dumpMonitorEmptySinceRef.current = null;
+        }
+      }
+      if (!audienceReactionActiveRef.current && performance.now() >= nextAmbientSpectatorChangeAt) {
+        constructionScene.setRandomAmbientSpectatorCuts(4 + Math.floor(Math.random() * 3));
+        nextAmbientSpectatorChangeAt = performance.now() + 4000 + Math.random() * 2000;
+      }
+
       scoopCheckTicker++;
       if (scoopCheckTicker % 6 === 0) {
         setBucketScoopCount(sim.getScoopedCount());

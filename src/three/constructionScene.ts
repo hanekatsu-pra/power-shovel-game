@@ -280,23 +280,72 @@ export class ConstructionScene {
     });
     return entries;
   }
-  /** Temporarily switches every registered stationary spectator to a viewing cut. */
+  private getReactionSpectatorSprites(reaction: 'critical' | 'disappointed' | 'ambient') {
+    const entries: Array<{ sprite: THREE.Sprite; profile: (typeof characterProfiles)[number] }> = [];
+    this.sceneGroup.traverse((object) => {
+      if (!(object instanceof THREE.Sprite)) return;
+      const ownerId = object.userData.ownerId;
+      if (typeof ownerId !== 'string' || !ownerId.startsWith('spectator_')) return;
+      const profile = characterProfileById[ownerId];
+      if (!profile) return;
+      const override = reaction === 'critical'
+        ? profile.criticalEnabled
+        : reaction === 'disappointed'
+          ? profile.disappointedEnabled
+          : undefined;
+      if (reaction === 'ambient' || (override ?? true)) entries.push({ sprite: object, profile });
+    });
+    return entries;
+  }
+
+  private applySpectatorCut(sprite: THREE.Sprite, profile: (typeof characterProfiles)[number], cutIndex: number) {
+    const fallbackAsset = cutIndex === 7
+      ? profile.spectatorAsset.replace('viewing-01-smile.png', 'viewing-07-banzai.png')
+      : cutIndex === 8
+        ? profile.spectatorAsset.replace('viewing-01-smile.png', 'viewing-08-disappointed.png')
+        : profile.spectatorAsset;
+    const asset = profile.viewingAssets?.[cutIndex - 1] ?? fallbackAsset;
+    const url = asset && getSpectatorAssetUrl(asset);
+    if (!url) return;
+    const texture = this.spectatorCutTextures[asset] ?? new THREE.TextureLoader().load(url);
+    this.spectatorCutTextures[asset] = texture;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const material = sprite.material as THREE.SpriteMaterial;
+    if (material.map === texture) return;
+    material.map = texture;
+    material.needsUpdate = true;
+  }
+
+  /** Switches every registered stationary spectator. Kept for compatibility. */
   public setSpectatorViewingCut(cutIndex: number) {
     this.sceneGroup.traverse((object) => {
       if (!(object instanceof THREE.Sprite)) return;
       const ownerId = object.userData.ownerId;
       if (typeof ownerId !== 'string' || !ownerId.startsWith('spectator_')) return;
       const profile = characterProfileById[ownerId];
-      const fallbackAsset = cutIndex === 7 ? profile?.spectatorAsset.replace('viewing-01-smile.png', 'viewing-07-banzai.png') : profile?.spectatorAsset;
-      const asset = profile?.viewingAssets?.[cutIndex - 1] ?? fallbackAsset;
-      const url = asset && getSpectatorAssetUrl(asset);
-      if (!url) return;
-      const texture = this.spectatorCutTextures[asset] ?? new THREE.TextureLoader().load(url);
-      this.spectatorCutTextures[asset] = texture;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      const material = object.material as THREE.SpriteMaterial;
-      material.map = texture;
-      material.needsUpdate = true;
+      if (profile) this.applySpectatorCut(object, profile, cutIndex);
+    });
+  }
+
+  /** Applies a reaction to all spectators unless disabled by a per-profile override. */
+  public setSpectatorReactionCut(cutIndex: number, reaction: 'critical' | 'disappointed', batch?: 0 | 1) {
+    const entries = this.getReactionSpectatorSprites(reaction);
+    entries.forEach((entry, index) => {
+      if (batch !== undefined && index % 2 !== batch) return;
+      this.applySpectatorCut(entry.sprite, entry.profile, cutIndex);
+    });
+  }
+
+  /** Changes a random sample of spectators with complete viewing-cut assets. */
+  public setRandomAmbientSpectatorCuts(count: number) {
+    const entries = this.getReactionSpectatorSprites('ambient').filter(({ profile }) => (profile.viewingAssets?.length ?? 0) >= 6);
+    for (let i = entries.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [entries[i], entries[j]] = [entries[j], entries[i]];
+    }
+    entries.slice(0, Math.min(count, entries.length)).forEach((entry) => {
+      const cutIndex = Math.random() < 0.5 ? 1 : 2 + Math.floor(Math.random() * 5);
+      this.applySpectatorCut(entry.sprite, entry.profile, cutIndex);
     });
   }
   constructor() {
@@ -309,6 +358,7 @@ export class ConstructionScene {
       const assets = [
         profile.viewingAssets?.[0] ?? profile.spectatorAsset,
         profile.viewingAssets?.[6] ?? profile.spectatorAsset.replace('viewing-01-smile.png', 'viewing-07-banzai.png'),
+        profile.viewingAssets?.[7] ?? profile.spectatorAsset.replace('viewing-01-smile.png', 'viewing-08-disappointed.png'),
       ];
       assets.forEach((asset) => {
         const url = getSpectatorAssetUrl(asset);
