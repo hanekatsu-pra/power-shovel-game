@@ -58,6 +58,7 @@ export default function App() {
 
   // UI state
   const [currentActionText, setCurrentActionText] = useState<string>('');
+  const [showIdleInstruction, setShowIdleInstruction] = useState(false);
   const [guardWarningText, setGuardWarningText] = useState<string>('');
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -121,6 +122,16 @@ export default function App() {
   useEffect(() => {
     cameraModeRef.current = cameraMode;
   }, [cameraMode]);
+
+  // Keep the help bubble out of the way while the player is operating either lever.
+  useEffect(() => {
+    if (currentActionText) {
+      setShowIdleInstruction(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowIdleInstruction(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, [currentActionText]);
 
   // Toggle audio
   const handleToggleMute = useCallback(() => {
@@ -925,6 +936,7 @@ export default function App() {
         isMuted={isMuted}
         cameraMode={cameraMode}
         engineState={engineState}
+        showIdleInstruction={showIdleInstruction}
         onToggleMute={handleToggleMute}
         onOpenGuide={() => setIsGuideOpen(true)}
         onResetGame={handleResetGame}
@@ -935,7 +947,7 @@ export default function App() {
       />
 
       {/* Dual Virtual Joysticks with Strict 4-Way Gating */}
-      <div className="absolute inset-x-0 bottom-2 sm:bottom-4 px-3 sm:px-8 flex justify-between items-end pointer-events-none z-30">
+      <div className="absolute inset-x-0 bottom-0 sm:bottom-1 px-1 sm:px-2 flex justify-between items-end pointer-events-none z-30">
         {/* Left Lever: アーム & 旋回 */}
         <VirtualJoystick
           id="left-joystick-controller"

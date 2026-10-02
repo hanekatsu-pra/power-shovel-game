@@ -37,3 +37,9 @@ body,
 .game-hud-instruction {
   bottom: clamp(4.5rem, 10vh, 7rem) !important;
 }
+
+.game-hud-instruction {
+  left: clamp(12rem, 22vw, 32rem) !important;
+  top: clamp(6.5rem, 20vh, 13rem) !important;
+  bottom: auto !important;
+}

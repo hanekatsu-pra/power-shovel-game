@@ -32,7 +32,7 @@ export const IgnitionKey: React.FC<IgnitionKeyProps> = ({
   return (
     <div
       id="ignition-key-panel"
-      className={`relative mt-1.5 p-2 rounded-xl border backdrop-blur-md transition-all pointer-events-auto flex items-center justify-between gap-3 shadow-xl ${
+      className={`relative mt-1.5 p-2 rounded-xl border backdrop-blur-md transition-all pointer-events-auto flex flex-row-reverse items-center justify-between gap-3 shadow-xl ${
         engineState === 'running'
           ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-100'
           : engineState === 'starting'
@@ -41,7 +41,7 @@ export const IgnitionKey: React.FC<IgnitionKeyProps> = ({
       }`}
     >
       {/* Key Cylinder & Lock Graphic */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-row-reverse items-center gap-2.5">
         <button
           id="ignition-key-tumbler-btn"
           onClick={handleTurnKey}
@@ -130,7 +130,7 @@ export const IgnitionKey: React.FC<IgnitionKeyProps> = ({
         <button
           id="turn-key-action-btn"
           onClick={handleTurnKey}
-          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-lg transition-all active:scale-95 animate-pulse flex items-center gap-1"
+          className="order-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-lg transition-all active:scale-95 animate-pulse flex items-center gap-1"
         >
           <span>🔑 キーをひねる</span>
         </button>

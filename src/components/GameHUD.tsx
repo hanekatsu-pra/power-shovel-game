@@ -21,6 +21,7 @@ interface GameHUDProps {
   comboEnabled: boolean;
   cameraMode: 'leftRear' | 'centerRear' | 'cab';
   engineState: 'off' | 'starting' | 'running';
+  showIdleInstruction: boolean;
   onToggleMute: () => void;
   onOpenGuide: () => void;
   onResetGame: () => void;
@@ -38,6 +39,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   comboEnabled,
   cameraMode,
   engineState,
+  showIdleInstruction,
   onToggleMute,
   onOpenGuide,
   onResetGame,
@@ -222,7 +224,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         {guardWarningText && (
           <div
             id="guard-warning-banner"
-            className="absolute left-[72%] top-[53%] -translate-x-1/2 max-w-[18rem] text-center px-4 py-1 rounded-full border text-[11px] font-black tracking-wide bg-red-950/90 border-red-500 text-red-200 backdrop-blur-md shadow-lg animate-bounce"
+            className="game-hud-guard-warning absolute left-1/2 top-[24%] -translate-x-1/2 max-w-[18rem] text-center px-4 py-1 rounded-full border text-[11px] font-black tracking-wide bg-red-950/90 border-red-500 text-red-200 backdrop-blur-md shadow-lg animate-bounce"
           >
             ⚠️ {guardWarningText}
           </div>
@@ -241,9 +243,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             </div>
           )}
 
-          {!guardWarningText && (
+          {showIdleInstruction && !guardWarningText && (
             <div
-              className={'game-hud-instruction absolute left-[33%] bottom-[10rem] top-auto -translate-x-1/2 max-w-[11rem] text-center leading-snug text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-md bg-slate-950/70 border-slate-800 text-slate-400'}
+              className={'game-hud-instruction absolute left-[22%] top-[22%] bottom-auto -translate-x-1/2 max-w-[11rem] text-center leading-snug text-[11px] font-semibold px-3 py-1 rounded-full border backdrop-blur-md bg-slate-950/70 border-slate-800 text-slate-400'}
             >
               左右レバーでボールをすくってダンプバスケットへ投入しよう！
             </div>
