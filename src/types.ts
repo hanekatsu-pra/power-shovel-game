@@ -47,6 +47,7 @@ export interface GameStats {
   ballsLoaded: number;
   totalBalls: number;
   goldenBallsLoaded: number;
+  criticalCount: number;
   combo: number;
   operatorRank: string;
   timeRemaining: number;

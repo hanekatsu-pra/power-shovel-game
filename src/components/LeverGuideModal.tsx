@@ -26,9 +26,6 @@ export const LeverGuideModal: React.FC<LeverGuideModalProps> = ({ isOpen, onClos
 
         {/* Title */}
         <div className="flex items-center gap-2.5 mb-3 border-b border-slate-700/80 pb-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-base shadow">
-            挖
-          </div>
           <div>
             <h2 className="text-lg font-bold text-amber-400">
               パワーショベル操作仕様書＆遊び方
