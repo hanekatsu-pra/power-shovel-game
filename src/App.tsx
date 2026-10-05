@@ -229,6 +229,23 @@ export default function App() {
     clearChallengeCountdown();
     clearGameEndSequence();
     isGameOverRef.current = false;
+    const switchingToChallenge = stats.mode === 'free';
+
+    if (switchingToChallenge) {
+      anglesRef.current = {
+        swing: Math.PI,
+        boom: 0.42,
+        arm: -0.3,
+        bucket: 0.1,
+      };
+      excavatorRef.current?.setAngles(anglesRef.current);
+
+      if (simRef.current && constructionSceneRef.current) {
+        simRef.current.resetBalls(constructionSceneRef.current.pitCenter);
+        constructionSceneRef.current.updateLoadedCountDisplay(0);
+      }
+    }
+
     setStats((prev) => {
       const nextMode: GameMode = prev.mode === 'free' ? 'challenge' : 'free';
       if (nextMode === 'challenge') {
@@ -250,13 +267,7 @@ export default function App() {
         isGameOver: false,
       };
     });
-
-    if (simRef.current && constructionSceneRef.current) {
-      simRef.current.resetBalls(constructionSceneRef.current.pitCenter);
-      constructionSceneRef.current.updateLoadedCountDisplay(0);
-    }
-  }, [clearChallengeCountdown, clearGameEndSequence]);
-
+  }, [clearChallengeCountdown, clearGameEndSequence, stats.mode]);
   // Reset excavator and balls
   const handleResetGame = useCallback(() => {
     clearChallengeCountdown();

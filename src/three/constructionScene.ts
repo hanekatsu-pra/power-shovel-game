@@ -1350,6 +1350,7 @@ export class ConstructionScene {
     rearBanner.name = 'RearWall_PowerShovel_Handdrawn_Banner';
     rearBanner.position.z = -6.97;
     rearBanner.rotation.y = Math.PI;
+    rearBanner.renderOrder = 0;
     background.add(rearBanner);
 
     // Simple hanging hardware gives the illustration the presence of a real banner.
@@ -1404,12 +1405,12 @@ export class ConstructionScene {
       plant.userData.id = id;
       plant.position.set(x, 1.0, z);
       plant.rotation.y = rotationY;
-      plant.renderOrder = 0;
+            plant.renderOrder = 0;
       background.add(plant);
     };
     addWallPlant('正面01', '../assets/mall-background/plant-front-01-fiddleleaf-handdrawn.png', 8.00, 0.00, -Math.PI / 2);
     addWallPlant('正面02', '../assets/mall-background/plant-front-02-kentia-handdrawn.png', 6.85, 6.50, Math.PI);
-    addWallPlant('背面01', '../assets/mall-background/plant-rear-01-monstera-handdrawn.png', -1.95, -6.50, 0);
+    addWallPlant('背面01', '../assets/mall-background/plant-rear-01-monstera-handdrawn.png', -1.95, -6.00, 0);
     addWallPlant('背面02', '../assets/mall-background/plant-rear-02-rubber-handdrawn.png', 6.85, -6.50, 0);
 
     // A real left-side corridor: the storefront is farther out, while fixture and
