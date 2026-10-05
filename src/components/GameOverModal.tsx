@@ -16,7 +16,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ stats, onRestart }
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md pointer-events-auto"
     >
       <div className="w-full max-w-md bg-slate-900 border-2 border-amber-500/60 rounded-2xl shadow-2xl p-6 text-center text-slate-100">
-        <h2 className="text-2xl font-black text-white mb-5">{'\u30c1\u30e3\u30ec\u30f3\u30b8\u7d42\u4e86\u30fb120\u79d2\u9593\u306e\u7a4d\u307f\u8fbc\u307f\u7d50\u679c'}</h2>
+        <h2 className="text-2xl font-black text-white mb-5">{'\u30c1\u30e3\u30ec\u30f3\u30b8\u7d42\u4e86\u30fb180\u79d2\u9593\u306e\u7a4d\u307f\u8fbc\u307f\u7d50\u679c'}</h2>
 
         <div className="p-5 rounded-xl bg-slate-950/80 border border-amber-500/40 mb-5">
           <div className="text-6xl font-black text-emerald-400 leading-none">

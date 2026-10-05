@@ -6,21 +6,63 @@ export const OrientationWarning: React.FC = () => {
   const [forceDismiss, setForceDismiss] = useState(false);
 
   useEffect(() => {
+    const delayedChecks = new Set<number>();
+    const orientationMedia = window.matchMedia('(orientation: portrait)');
+    const screenOrientation = window.screen.orientation;
+
     const checkOrientation = () => {
-      // Check if height > width AND screen width < 900px (phone/tablet portrait)
-      const portrait = window.innerHeight > window.innerWidth && window.innerWidth < 800;
-      setIsPortrait(portrait);
+      const viewport = window.visualViewport;
+      const width = Math.round(viewport?.width ?? window.innerWidth);
+      const height = Math.round(viewport?.height ?? window.innerHeight);
+      const orientationType = screenOrientation?.type;
+      const hasDistinctDimensions = Math.abs(height - width) > 1;
+      const portrait = hasDistinctDimensions
+        ? height > width
+        : orientationType?.startsWith('portrait') ?? orientationMedia.matches;
+      // Preserve desktop behaviour while handling all common phone viewport sizes.
+      setIsPortrait(portrait && Math.min(width, height) < 800);
     };
 
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
+    const scheduleOrientationCheck = () => {
+      checkOrientation();
+      delayedChecks.forEach((timer) => window.clearTimeout(timer));
+      delayedChecks.clear();
+      // Some Android browsers report the new viewport after the first rotation event.
+      [80, 220, 500].forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          delayedChecks.delete(timer);
+          checkOrientation();
+        }, delay);
+        delayedChecks.add(timer);
+      });
+    };
+
+    scheduleOrientationCheck();
+    window.addEventListener('resize', scheduleOrientationCheck);
+    window.addEventListener('orientationchange', scheduleOrientationCheck);
+    window.visualViewport?.addEventListener('resize', scheduleOrientationCheck);
+    window.visualViewport?.addEventListener('scroll', scheduleOrientationCheck);
+    screenOrientation?.addEventListener('change', scheduleOrientationCheck);
+    if (orientationMedia.addEventListener) {
+      orientationMedia.addEventListener('change', scheduleOrientationCheck);
+    } else {
+      orientationMedia.addListener(scheduleOrientationCheck);
+    }
+
     return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
+      delayedChecks.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener('resize', scheduleOrientationCheck);
+      window.removeEventListener('orientationchange', scheduleOrientationCheck);
+      window.visualViewport?.removeEventListener('resize', scheduleOrientationCheck);
+      window.visualViewport?.removeEventListener('scroll', scheduleOrientationCheck);
+      screenOrientation?.removeEventListener('change', scheduleOrientationCheck);
+      if (orientationMedia.removeEventListener) {
+        orientationMedia.removeEventListener('change', scheduleOrientationCheck);
+      } else {
+        orientationMedia.removeListener(scheduleOrientationCheck);
+      }
     };
   }, []);
-
   if (!isPortrait || forceDismiss) return null;
 
   return (

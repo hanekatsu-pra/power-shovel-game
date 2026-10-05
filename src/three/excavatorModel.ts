@@ -406,10 +406,10 @@ export class ExcavatorModel {
 
     // Initial angles
     this.setAngles({
-      swing: 0,
-      boom: 0.15,
+      swing: Math.PI,
+      boom: 0.42,
       arm: -0.3,
-      bucket: 0.2,
+      bucket: 0.1,
     });
   }
 

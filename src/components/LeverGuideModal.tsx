@@ -28,13 +28,28 @@ export const LeverGuideModal: React.FC<LeverGuideModalProps> = ({ isOpen, onClos
         <div className="flex items-center gap-2.5 mb-3 border-b border-slate-700/80 pb-3">
           <div>
             <h2 className="text-lg font-bold text-amber-400">
-              パワーショベル操作仕様書＆遊び方
+              パワーショベルに乗ろう！遊び方
             </h2>
             <p className="text-xs text-slate-400">
               YouTube「PLCおじさんの自由研究」企画
             </p>
           </div>
         </div>
+
+        {/* Game modes */}
+        <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-800/60 p-3.5">
+          <h3 className="text-sm font-bold text-amber-300">■ ゲームモード</h3>
+          <dl className="mt-2 space-y-1.5 text-xs text-slate-200">
+            <div className="flex gap-2">
+              <dt className="shrink-0 font-bold text-white">180s チャレンジ：</dt>
+              <dd>制限時間内にすくったボールの数を競います</dd>
+            </div>
+            <div className="flex gap-2">
+              <dt className="shrink-0 font-bold text-white">自由練習：</dt>
+              <dd>パワーショベルの操作を練習することができます</dd>
+            </div>
+          </dl>
+        </section>
 
         {/* Two Levers Explanation Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">

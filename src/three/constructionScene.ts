@@ -1267,8 +1267,8 @@ export class ConstructionScene {
     };
     // Front wall: drawn in front of the hanging title banner.
     [-0.83, 3.003, 6.836].forEach((x) => addGarlandSection(x, 3.15, 6.70, Math.PI, 4.04));
-    // Rear wall: same attached sections, facing into the game field.
-    [-0.83, 3.003, 6.836].forEach((x) => addGarlandSection(x, 3.15, -6.98, 0, 4.04));
+    // Rear wall: keep the garland on the game-field side of the banner.
+    [-0.83, 3.003, 6.836].forEach((x) => addGarlandSection(x, 3.15, -6.70, 0, 4.04));
     // Right wall: several independently pinned sections continue along the entire side.
     [-8.11, -4.806, -1.502, 1.802, 5.106, 8.11].forEach((z) => addGarlandSection(8.43, 3.15, z, -Math.PI / 2, 3.478));
     this.sceneGroup.add(decorationGroup);
@@ -1345,6 +1345,13 @@ export class ConstructionScene {
     frontBanner.renderOrder = 1;
     background.add(frontBanner);
 
+    // Rear-wall counterpart: readable when looking behind the excavator at game start.
+    const rearBanner = frontBanner.clone();
+    rearBanner.name = 'RearWall_PowerShovel_Handdrawn_Banner';
+    rearBanner.position.z = -6.97;
+    rearBanner.rotation.y = Math.PI;
+    background.add(rearBanner);
+
     // Simple hanging hardware gives the illustration the presence of a real banner.
     const bannerHangerMat = new THREE.MeshToonMaterial({ color: 0xf8fafc, gradientMap: celGradient });
     const bannerRopeMat = new THREE.MeshToonMaterial({ color: 0xd9c7a1, gradientMap: celGradient });
@@ -1361,6 +1368,17 @@ export class ConstructionScene {
     const bottomRod = topRod.clone();
     bottomRod.position.y = bannerCenterY - frontBannerHeight / 2 - 0.02;
     background.add(topRod, bottomRod);
+
+    [-1, 1].forEach((side) => {
+      const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.80, 8), bannerRopeMat);
+      rope.position.set(bannerX + side * (frontBannerWidth * 0.40), 3.40, -6.94);
+      background.add(rope);
+    });
+    const rearTopRod = topRod.clone();
+    rearTopRod.position.z = -6.94;
+    const rearBottomRod = bottomRod.clone();
+    rearBottomRod.position.z = -6.94;
+    background.add(rearTopRod, rearBottomRod);
 
 
     [0, 2.9, 5.8].forEach((x) => {

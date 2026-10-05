@@ -156,19 +156,33 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
             {/* Action Controls Window */}
             <div className={`game-hud-action-controls flex items-center gap-1 sm:gap-1.5 rounded-xl p-1 ${panelBg}`}>
-              {/* Mode switch */}
-              <button
-                id="toggle-game-mode-btn"
-                onClick={onToggleMode}
-                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg ${
-                  stats.mode === 'challenge'
-                    ? 'bg-amber-500/30 text-amber-300 border border-amber-500/50'
-                    : btnBg
-                }`}
-                title="モード切替"
-              >
-                {stats.mode === 'free' ? '自由練習' : '120s チャレンジ'}
-              </button>
+              {/* Mode selector */}
+              <div className="flex items-center gap-1" role="group" aria-label="ゲームモード">
+                <button
+                  id="select-free-mode-btn"
+                  onClick={() => stats.mode !== 'free' && onToggleMode()}
+                  aria-pressed={stats.mode === 'free'}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                    stats.mode === 'free'
+                      ? 'bg-orange-500 text-slate-950 border-orange-300 shadow-sm'
+                      : 'bg-slate-800/90 text-slate-300 border-slate-700/80 hover:bg-slate-700/90'
+                  }`}
+                >
+                  自由練習
+                </button>
+                <button
+                  id="select-challenge-mode-btn"
+                  onClick={() => stats.mode !== 'challenge' && onToggleMode()}
+                  aria-pressed={stats.mode === 'challenge'}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                    stats.mode === 'challenge'
+                      ? 'bg-orange-500 text-slate-950 border-orange-300 shadow-sm'
+                      : 'bg-slate-800/90 text-slate-300 border-slate-700/80 hover:bg-slate-700/90'
+                  }`}
+                >
+                  180s チャレンジ
+                </button>
+              </div>
 
               {/* Audio toggle */}
               <button

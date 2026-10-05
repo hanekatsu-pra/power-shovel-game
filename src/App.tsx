@@ -18,12 +18,14 @@ import { DebugPanel } from './components/DebugPanel';
 import { LeverGuideModal } from './components/LeverGuideModal';
 import { OrientationWarning } from './components/OrientationWarning';
 import { GameOverModal } from './components/GameOverModal';
+import { StartScreen } from './components/StartScreen';
 import { HandDrawnIllustrationOverlay } from './components/CrayonOverlay';
 import { soundManager } from './audio/soundManager';
 import { LeverInput, ExcavatorAngles, GameStats, GameMode } from './types';
 
 const DEBUG = true;
 type CollisionState = 'NONE' | 'POOL_RAIL' | 'DUMP_BASKET';
+type EntryScreen = 'start' | 'notice' | 'game';
 
 const BUCKET_COLLISION_LOCAL_POINTS: THREE.Vector3[] = [];
 for (const x of [-BUCKET_OUTER_WIDTH / 2, 0, BUCKET_OUTER_WIDTH / 2]) {
@@ -47,16 +49,17 @@ export default function App() {
 
   // Excavator dynamic joint state refs
   const anglesRef = useRef<ExcavatorAngles>({
-    swing: 0,
-    boom: 0.2,
-    arm: -0.2,
-    bucket: 0,
+    swing: Math.PI,
+    boom: 0.42,
+    arm: -0.3,
+    bucket: 0.1,
   });
 
   const leftInputRef = useRef<LeverInput>({ x: 0, y: 0, active: false });
   const rightInputRef = useRef<LeverInput>({ x: 0, y: 0, active: false });
 
   // UI state
+  const [entryScreen, setEntryScreen] = useState<EntryScreen>('start');
   const [currentActionText, setCurrentActionText] = useState<string>('');
   const [showIdleInstruction, setShowIdleInstruction] = useState(false);
   const [guardWarningText, setGuardWarningText] = useState<string>('');
@@ -86,6 +89,7 @@ export default function App() {
     reason: 'NONE',
   });
   const [comboBannerText, setComboBannerText] = useState<string>('');
+  const [countdownValue, setCountdownValue] = useState<number | null>(null);
 
   const [stats, setStats] = useState<GameStats>({
     score: 0,
@@ -95,7 +99,7 @@ export default function App() {
     criticalCount: 0,
     combo: 1,
     operatorRank: '🐣 ひよこ見習い',
-    timeRemaining: 120,
+    timeRemaining: 180,
     isGameOver: false,
     mode: 'challenge',
   });
@@ -119,6 +123,10 @@ export default function App() {
   const dumpMonitorStartLoadedRef = useRef(0);
   const dumpMonitorEmptySinceRef = useRef<number | null>(null);
   const dumpMonitorLastLoadedRef = useRef(0);
+  const isGameOverRef = useRef(false);
+  const challengeStartTimersRef = useRef<number[]>([]);
+  const gameEndTimerRef = useRef<number | null>(null);
+  const gameEndSequenceVersionRef = useRef(0);
 
   const engineStateRef = useRef<'off' | 'starting' | 'running'>('off');
   const cameraModeRef = useRef<'leftRear' | 'centerRear' | 'cab'>('leftRear');
@@ -126,6 +134,10 @@ export default function App() {
   useEffect(() => {
     engineStateRef.current = engineState;
   }, [engineState]);
+
+  useEffect(() => {
+    isGameOverRef.current = stats.isGameOver;
+  }, [stats.isGameOver]);
 
   useEffect(() => {
     cameraModeRef.current = cameraMode;
@@ -156,22 +168,67 @@ export default function App() {
     });
   }, []);
 
-  // Engine starter ignition key handlers
-  const handleStartEngine = useCallback(() => {
-    setEngineState('starting');
-    soundManager.playIgnitionStarter();
-    setTimeout(() => {
-      setEngineState('running');
-    }, 1300);
+  const clearChallengeCountdown = useCallback(() => {
+    challengeStartTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    challengeStartTimersRef.current = [];
+    setCountdownValue(null);
   }, []);
 
+  const clearGameEndSequence = useCallback(() => {
+    gameEndSequenceVersionRef.current += 1;
+    if (gameEndTimerRef.current !== null) {
+      window.clearTimeout(gameEndTimerRef.current);
+      gameEndTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      clearChallengeCountdown();
+      clearGameEndSequence();
+    },
+    [clearChallengeCountdown, clearGameEndSequence]
+  );
+
+  // Engine starter ignition key handlers
+  const handleStartEngine = useCallback(() => {
+    if (stats.mode !== 'challenge' || engineStateRef.current !== 'off') return;
+    clearChallengeCountdown();
+    soundManager.init();
+    engineStateRef.current = 'starting';
+    setEngineState('starting');
+    soundManager.playIgnitionStarter();
+
+    const schedule = (callback: () => void, delay: number) => {
+      challengeStartTimersRef.current.push(window.setTimeout(callback, delay));
+    };
+    schedule(() => {
+      setCountdownValue(3);
+      soundManager.playChallengeCountdown();
+    }, 1300);
+    schedule(() => setCountdownValue(2), 2300);
+    schedule(() => setCountdownValue(1), 3300);
+    schedule(() => setCountdownValue(0), 4300);
+    schedule(() => {
+      setCountdownValue(null);
+      engineStateRef.current = 'running';
+      setEngineState('running');
+      challengeStartTimersRef.current = [];
+    }, 5300);
+  }, [clearChallengeCountdown, stats.mode]);
+
   const handleStopEngine = useCallback(() => {
+    clearChallengeCountdown();
+    engineStateRef.current = 'off';
     setEngineState('off');
     soundManager.silenceEngine();
-  }, []);
+  }, [clearChallengeCountdown, clearGameEndSequence]);
 
   // Toggle game mode
   const handleToggleMode = useCallback(() => {
+    clearChallengeCountdown();
+    clearGameEndSequence();
+    isGameOverRef.current = false;
     setStats((prev) => {
       const nextMode: GameMode = prev.mode === 'free' ? 'challenge' : 'free';
       if (nextMode === 'challenge') {
@@ -189,7 +246,7 @@ export default function App() {
         criticalCount: 0,
         combo: 1,
         operatorRank: '🐣 ひよこ見習い',
-        timeRemaining: 120,
+        timeRemaining: 180,
         isGameOver: false,
       };
     });
@@ -198,15 +255,18 @@ export default function App() {
       simRef.current.resetBalls(constructionSceneRef.current.pitCenter);
       constructionSceneRef.current.updateLoadedCountDisplay(0);
     }
-  }, []);
+  }, [clearChallengeCountdown, clearGameEndSequence]);
 
   // Reset excavator and balls
   const handleResetGame = useCallback(() => {
+    clearChallengeCountdown();
+    clearGameEndSequence();
+    isGameOverRef.current = false;
     anglesRef.current = {
-      swing: 0,
-      boom: 0.2,
-      arm: -0.2,
-      bucket: 0,
+      swing: Math.PI,
+      boom: 0.42,
+      arm: -0.3,
+      bucket: 0.1,
     };
     if (excavatorRef.current) {
       excavatorRef.current.setAngles(anglesRef.current);
@@ -227,7 +287,7 @@ export default function App() {
         criticalCount: 0,
         combo: 1,
         operatorRank: '🐣 ひよこ見習い',
-        timeRemaining: 120,
+        timeRemaining: 180,
         isGameOver: false,
       };
     });
@@ -244,7 +304,7 @@ export default function App() {
     dumpMonitorLastLoadedRef.current = 0;
     setGuardWarningText('');
     setComboBannerText('');
-  }, []);
+  }, [clearChallengeCountdown, clearGameEndSequence]);
 
   // Three.js Scene Setup & Render Loop
   useEffect(() => {
@@ -322,6 +382,8 @@ export default function App() {
 
     // Callback when any ball is loaded into the dump bed
     sim.onBallLoadedCallback = (_loadedCount, _ballId, _isGolden) => {
+      // Balls already in flight may arrive after time-up, but no longer count.
+      if (isGameOverRef.current) return;
       confirmedBasketEntriesRef.current += 1;
       setStats((prev) => {
         const nextCount = prev.ballsLoaded + 1;
@@ -969,9 +1031,22 @@ export default function App() {
       setStats((prev) => {
         if (prev.timeRemaining <= 1) {
           clearInterval(timer);
-          soundManager.silenceEngine();
-          setEngineState('off');
-          return { ...prev, timeRemaining: 0, isGameOver: true };
+          if (!isGameOverRef.current) {
+            isGameOverRef.current = true;
+            soundManager.silenceEngine();
+            engineStateRef.current = 'off';
+            setEngineState('off');
+            const sequenceVersion = gameEndSequenceVersionRef.current;
+            soundManager.playTimeUpSequence(() => {
+              if (gameEndSequenceVersionRef.current !== sequenceVersion) return;
+              gameEndTimerRef.current = window.setTimeout(() => {
+                if (gameEndSequenceVersionRef.current !== sequenceVersion) return;
+                gameEndTimerRef.current = null;
+                setStats((current) => ({ ...current, isGameOver: true }));
+              }, 180);
+            });
+          }
+          return { ...prev, timeRemaining: 0, isGameOver: false };
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
@@ -998,14 +1073,12 @@ export default function App() {
       {/* 3D WebGL Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block touch-none" />
 
+      {entryScreen === 'game' && (<>
       {/* Hand-Drawn Illustration Style Watercolor Paper & Framing Overlay */}
       <HandDrawnIllustrationOverlay
         actionText={currentActionText}
         comboText={COMBO_ENABLED ? comboBannerText : ''}
       />
-
-      {/* Portrait mode orientation warning */}
-      <OrientationWarning />
 
       {DEBUG && (
         <div className="mobile-debug-hidden">
@@ -1024,6 +1097,13 @@ export default function App() {
         </div>
       )}
 
+      {countdownValue !== null && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none" aria-live="assertive">
+          <div className="min-w-[0.9em] text-center text-[clamp(7rem,25vw,18rem)] leading-none font-black text-amber-300 drop-shadow-[0_0_18px_rgba(120,53,15,0.95)] [text-shadow:4px_4px_0_#1e293b,-3px_-3px_0_#1e293b,3px_-3px_0_#1e293b,-3px_3px_0_#1e293b] animate-pulse">
+            {countdownValue}
+          </div>
+        </div>
+      )}
       {/* Heads-up display with score, status, controls, and aligned camera & ignition key windows */}
       <GameHUD
         stats={stats}
@@ -1077,6 +1157,18 @@ export default function App() {
           }}
         />
       </div>
+
+      </>)}
+
+      {/* Portrait mode orientation warning */}
+      <OrientationWarning />
+
+      <StartScreen
+        view={entryScreen}
+        onStart={() => setEntryScreen('game')}
+        onOpenNotice={() => setEntryScreen('notice')}
+        onBack={() => setEntryScreen('start')}
+      />
 
       {/* Guide & Results Modals */}
       <LeverGuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />

@@ -19,9 +19,19 @@ class SoundManager {
   private hydraulicNoise: AudioBufferSourceNode | null = null;
   private hydraulicFilter: BiquadFilterNode | null = null;
   private isInitialized: boolean = false;
+  private successEffect: HTMLAudioElement | null = null;
+  private disappointedEffect: HTMLAudioElement | null = null;
+  private countdownEffect: HTMLAudioElement | null = null;
+  private timeUpWhistleEffect: HTMLAudioElement | null = null;
+  private timeUpAnnouncementEffect: HTMLAudioElement | null = null;
 
   public init() {
     if (this.isInitialized) return;
+    this.successEffect = this.createEffectAudio('歓声と拍手.mp3');
+    this.disappointedEffect = this.createEffectAudio('目が点になる.mp3');
+    this.countdownEffect = this.createEffectAudio('「3、2、1、0」.mp3');
+    this.timeUpWhistleEffect = this.createEffectAudio('警官のホイッスル2.mp3');
+    this.timeUpAnnouncementEffect = this.createEffectAudio('「タイムアーップ」.mp3');
     try {
       const AudioContextClass =
         window.AudioContext ||
@@ -42,6 +52,33 @@ class SoundManager {
     }
   }
 
+  private createEffectAudio(fileName: string): HTMLAudioElement {
+    const audio = new Audio(`${import.meta.env.BASE_URL}audio/${encodeURIComponent(fileName)}`);
+    audio.preload = 'auto';
+    return audio;
+  }
+
+  private playEffectAudio(
+    effect: HTMLAudioElement | null,
+    volume: number,
+    onComplete?: () => void
+  ): boolean {
+    if (!effect) return false;
+    const playback = effect.cloneNode(true) as HTMLAudioElement;
+    playback.volume = volume;
+    let completed = false;
+    const complete = () => {
+      if (completed) return;
+      completed = true;
+      onComplete?.();
+    };
+    if (onComplete) playback.addEventListener('ended', complete, { once: true });
+    void playback.play().catch(() => {
+      console.warn('Effect audio could not be played.');
+      complete();
+    });
+    return true;
+  }
   private setupEngine() {
     if (!this.ctx) return;
 
@@ -229,8 +266,8 @@ class SoundManager {
   public playSuccessChime() {
     if (!this.ctx || this.isMuted || !this.isGameActive) return;
     this.resume();
-
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    if (this.playEffectAudio(this.successEffect, 0.45)) return;
+const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
     notes.forEach((freq, idx) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
@@ -254,8 +291,8 @@ class SoundManager {
   public playDisappointedChime() {
     if (!this.ctx || this.isMuted || !this.isGameActive) return;
     this.resume();
-
-    // A high, clear xylophone-style "chin" for a near-miss.
+    if (this.playEffectAudio(this.disappointedEffect, 0.45)) return;
+// A high, clear xylophone-style "chin" for a near-miss.
     const startAt = this.ctx.currentTime + 0.015;
     const playBellTone = (frequency: number, volume: number, duration: number) => {
       if (!this.ctx) return;
@@ -425,6 +462,24 @@ class SoundManager {
     revSub.start(t + 0.6);
     revOsc.stop(t + 1.45);
     revSub.stop(t + 1.45);
+  }
+
+  public playChallengeCountdown() {
+    if (this.isMuted) return;
+    this.resume();
+    this.playEffectAudio(this.countdownEffect, 0.5);
+  }
+
+  public playTimeUpSequence(onComplete: () => void) {
+    if (this.isMuted) {
+      onComplete();
+      return;
+    }
+    this.resume();
+    const playAnnouncement = () => {
+      if (!this.playEffectAudio(this.timeUpAnnouncementEffect, 0.5, onComplete)) onComplete();
+    };
+    if (!this.playEffectAudio(this.timeUpWhistleEffect, 0.55, playAnnouncement)) playAnnouncement();
   }
 
   public toggleMute(): boolean {

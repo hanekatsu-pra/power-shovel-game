@@ -154,8 +154,10 @@ export class PhysicsSim {
     });
 
     this.instancedMesh = new THREE.InstancedMesh(ballGeom, ballMat, totalBalls);
-    this.instancedMesh.castShadow = true;
-    this.instancedMesh.receiveShadow = true;
+    // Thousands of balls are updated continuously. Excluding them from the shadow pass
+    // substantially reduces mobile GPU work without changing gameplay physics.
+    this.instancedMesh.castShadow = false;
+    this.instancedMesh.receiveShadow = false;
     this.ballsGroup.add(this.instancedMesh);
 
     const width = this.poolBounds.maxX - this.poolBounds.minX - r * 2.2;
