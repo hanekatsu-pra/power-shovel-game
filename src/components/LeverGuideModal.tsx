@@ -51,6 +51,16 @@ export const LeverGuideModal: React.FC<LeverGuideModalProps> = ({ isOpen, onClos
           </dl>
         </section>
 
+        <section className="mb-4 rounded-xl border border-slate-700/70 bg-slate-800/60 p-3.5">
+          <h3 className="text-sm font-bold text-amber-300">■ 音声</h3>
+          <p className="mt-2 text-xs leading-relaxed text-slate-200">
+            音声ミュートを解除すると、より臨場感を楽しめます。
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400">
+            携帯の音声OFFハードスイッチには連動しません。
+          </p>
+        </section>
+
         {/* Two Levers Explanation Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
           {/* Left Lever */}

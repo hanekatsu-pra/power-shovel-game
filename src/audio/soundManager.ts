@@ -10,7 +10,7 @@
 
 class SoundManager {
   private ctx: AudioContext | null = null;
-  private isMuted: boolean = false;
+  private isMuted: boolean = true;
   private isGameActive: boolean = true;
   private engineGain: GainNode | null = null;
   private engineOsc: OscillatorNode | null = null;
@@ -19,19 +19,11 @@ class SoundManager {
   private hydraulicNoise: AudioBufferSourceNode | null = null;
   private hydraulicFilter: BiquadFilterNode | null = null;
   private isInitialized: boolean = false;
-  private successEffect: HTMLAudioElement | null = null;
-  private disappointedEffect: HTMLAudioElement | null = null;
-  private countdownEffect: HTMLAudioElement | null = null;
-  private timeUpWhistleEffect: HTMLAudioElement | null = null;
-  private timeUpAnnouncementEffect: HTMLAudioElement | null = null;
+  private effectBuffers = new Map<string, AudioBuffer>();
+  private effectPreloadPromise: Promise<void> | null = null;
 
   public init() {
     if (this.isInitialized) return;
-    this.successEffect = this.createEffectAudio('歓声と拍手.mp3');
-    this.disappointedEffect = this.createEffectAudio('目が点になる.mp3');
-    this.countdownEffect = this.createEffectAudio('「3、2、1、0」.mp3');
-    this.timeUpWhistleEffect = this.createEffectAudio('警官のホイッスル2.mp3');
-    this.timeUpAnnouncementEffect = this.createEffectAudio('「タイムアーップ」.mp3');
     try {
       const AudioContextClass =
         window.AudioContext ||
@@ -41,6 +33,7 @@ class SoundManager {
       this.setupEngine();
       this.setupHydraulics();
       this.isInitialized = true;
+      void this.preloadEffectBuffers();
     } catch {
       console.warn('Web Audio API not supported');
     }
@@ -52,33 +45,57 @@ class SoundManager {
     }
   }
 
-  private createEffectAudio(fileName: string): HTMLAudioElement {
-    const audio = new Audio(`${import.meta.env.BASE_URL}audio/${encodeURIComponent(fileName)}`);
-    audio.preload = 'auto';
-    return audio;
+  public enableAudio() {
+    this.init();
+    this.resume();
   }
 
-  private playEffectAudio(
-    effect: HTMLAudioElement | null,
-    volume: number,
-    onComplete?: () => void
-  ): boolean {
-    if (!effect) return false;
-    const playback = effect.cloneNode(true) as HTMLAudioElement;
-    playback.volume = volume;
-    let completed = false;
-    const complete = () => {
-      if (completed) return;
-      completed = true;
-      onComplete?.();
-    };
-    if (onComplete) playback.addEventListener('ended', complete, { once: true });
-    void playback.play().catch(() => {
-      console.warn('Effect audio could not be played.');
-      complete();
-    });
-    return true;
+  private async preloadEffectBuffers() {
+    if (!this.ctx) return;
+    if (this.effectPreloadPromise) return this.effectPreloadPromise;
+    const effectFiles = {
+      success: '歓声と拍手.mp3',
+      disappointed: '目が点になる.mp3',
+      countdown: '「3、2、1、0」.mp3',
+      timeUpWhistle: '警官のホイッスル2.mp3',
+      timeUpAnnouncement: '「タイムアーップ」.mp3',
+    } as const;
+    this.effectPreloadPromise = Promise.all(
+      Object.entries(effectFiles).map(async ([name, fileName]) => {
+        try {
+          const response = await fetch(`${import.meta.env.BASE_URL}audio/${encodeURIComponent(fileName)}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const encoded = await response.arrayBuffer();
+          const decoded = await this.ctx!.decodeAudioData(encoded);
+          this.effectBuffers.set(name, decoded);
+        } catch (error) {
+          console.warn(`Effect audio preload failed: ${name}`, error);
+        }
+      })
+    ).then(() => undefined);
+    return this.effectPreloadPromise;
   }
+
+  private playBufferedEffect(name: string, volume: number, onComplete?: () => void): boolean {
+    if (!this.ctx) return false;
+    const buffer = this.effectBuffers.get(name);
+    if (!buffer) return false;
+    try {
+      const source = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      source.buffer = buffer;
+      gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+      source.connect(gain);
+      gain.connect(this.ctx.destination);
+      if (onComplete) source.addEventListener('ended', onComplete, { once: true });
+      source.start();
+      return true;
+    } catch (error) {
+      console.warn(`Effect audio playback failed: ${name}`, error);
+      return false;
+    }
+  }
+
   private setupEngine() {
     if (!this.ctx) return;
 
@@ -266,7 +283,7 @@ class SoundManager {
   public playSuccessChime() {
     if (!this.ctx || this.isMuted || !this.isGameActive) return;
     this.resume();
-    if (this.playEffectAudio(this.successEffect, 0.45)) return;
+    if (this.playBufferedEffect('success', 0.45)) return;
 const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
     notes.forEach((freq, idx) => {
       if (!this.ctx) return;
@@ -291,7 +308,7 @@ const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
   public playDisappointedChime() {
     if (!this.ctx || this.isMuted || !this.isGameActive) return;
     this.resume();
-    if (this.playEffectAudio(this.disappointedEffect, 0.45)) return;
+    if (this.playBufferedEffect('disappointed', 0.45)) return;
 // A high, clear xylophone-style "chin" for a near-miss.
     const startAt = this.ctx.currentTime + 0.015;
     const playBellTone = (frequency: number, volume: number, duration: number) => {
@@ -464,10 +481,69 @@ const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
     revSub.stop(t + 1.45);
   }
 
+  private playCountdownFallback() {
+    if (!this.ctx) return;
+    [0, 1, 2, 3].forEach((offset) => {
+      if (!this.ctx) return;
+      const oscillator = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startAt = this.ctx.currentTime + offset;
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(offset === 3 ? 1046.5 : 783.99, startAt);
+      gain.gain.setValueAtTime(0.12, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.16);
+      oscillator.connect(gain);
+      gain.connect(this.ctx.destination);
+      oscillator.start(startAt);
+      oscillator.stop(startAt + 0.18);
+    });
+  }
+
   public playChallengeCountdown() {
-    if (this.isMuted) return;
+    if (!this.ctx || this.isMuted) return;
     this.resume();
-    this.playEffectAudio(this.countdownEffect, 0.5);
+    if (!this.playBufferedEffect('countdown', 0.5)) this.playCountdownFallback();
+  }
+
+  private playTimeUpWhistleFallback(onComplete: () => void) {
+    if (!this.ctx) {
+      onComplete();
+      return;
+    }
+    const oscillator = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(1700, this.ctx.currentTime);
+    oscillator.frequency.linearRampToValueAtTime(2200, this.ctx.currentTime + 0.38);
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.43);
+    oscillator.connect(gain);
+    gain.connect(this.ctx.destination);
+    oscillator.start();
+    oscillator.stop(this.ctx.currentTime + 0.45);
+    window.setTimeout(onComplete, 470);
+  }
+
+  private playTimeUpAnnouncementFallback(onComplete: () => void) {
+    if (!this.ctx) {
+      onComplete();
+      return;
+    }
+    [740, 587, 440].forEach((frequency, index) => {
+      if (!this.ctx) return;
+      const oscillator = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startAt = this.ctx.currentTime + index * 0.18;
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, startAt);
+      gain.gain.setValueAtTime(0.1, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.28);
+      oscillator.connect(gain);
+      gain.connect(this.ctx.destination);
+      oscillator.start(startAt);
+      oscillator.stop(startAt + 0.3);
+    });
+    window.setTimeout(onComplete, 620);
   }
 
   public playTimeUpSequence(onComplete: () => void) {
@@ -475,16 +551,24 @@ const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
       onComplete();
       return;
     }
+    if (!this.ctx) {
+      onComplete();
+      return;
+    }
     this.resume();
     const playAnnouncement = () => {
-      if (!this.playEffectAudio(this.timeUpAnnouncementEffect, 0.5, onComplete)) onComplete();
+      if (this.playBufferedEffect('timeUpAnnouncement', 0.5, onComplete)) return;
+      this.playTimeUpAnnouncementFallback(onComplete);
     };
-    if (!this.playEffectAudio(this.timeUpWhistleEffect, 0.55, playAnnouncement)) playAnnouncement();
+    if (this.playBufferedEffect('timeUpWhistle', 0.55, playAnnouncement)) return;
+    this.playTimeUpWhistleFallback(playAnnouncement);
   }
 
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
-    if (this.isMuted) {
+    if (!this.isMuted) {
+      this.enableAudio();
+    } else {
       this.silenceEngine();
     }
     return this.isMuted;

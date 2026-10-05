@@ -64,7 +64,7 @@ export default function App() {
   const [showIdleInstruction, setShowIdleInstruction] = useState(false);
   const [guardWarningText, setGuardWarningText] = useState<string>('');
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
   const [cameraMode, setCameraMode] = useState<'leftRear' | 'centerRear' | 'cab'>('leftRear');
   const [engineState, setEngineState] = useState<'off' | 'starting' | 'running'>('off');
   const [bucketScoopCount, setBucketScoopCount] = useState<number>(0);
@@ -194,7 +194,7 @@ export default function App() {
   const handleStartEngine = useCallback(() => {
     if (stats.mode !== 'challenge' || engineStateRef.current !== 'off') return;
     clearChallengeCountdown();
-    soundManager.init();
+    soundManager.enableAudio();
     engineStateRef.current = 'starting';
     setEngineState('starting');
     soundManager.playIgnitionStarter();
