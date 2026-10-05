@@ -1,0 +1,26 @@
+{
+  "id": "/power-shovel-game/",
+  "name": "パワーショベルに乗ろう！",
+  "short_name": "パワーショベル",
+  "description": "パワーショベルを操作して、ボールをダンプバスケットへ積み込むゲームです。",
+  "start_url": "/power-shovel-game/",
+  "scope": "/power-shovel-game/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/power-shovel-game/icons/power-shovel-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/power-shovel-game/icons/power-shovel-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
