@@ -23,7 +23,7 @@ import { HandDrawnIllustrationOverlay } from './components/CrayonOverlay';
 import { soundManager } from './audio/soundManager';
 import { LeverInput, ExcavatorAngles, GameStats, GameMode } from './types';
 
-const DEBUG = true;
+const DEBUG = import.meta.env.DEV;
 type CollisionState = 'NONE' | 'POOL_RAIL' | 'DUMP_BASKET';
 type EntryScreen = 'start' | 'notice' | 'game';
 
